@@ -1,28 +1,68 @@
 %----------------------------------------------------------------------------
-\chapter{Dimension reduction algorithms}
+\chapter{Dimension reduction algorithms}\label{ch:dimension-reduction-algorithms}
 %----------------------------------------------------------------------------
 
-\section{PCA}
-
-\subsection{Mathematical formula}
 
 
-\section{t-SNE}
 
-\subsection{Mathematical formula}
+\section{PCA}\label{sec:pca}
+
+\textit{Principal Component Analysis}\cite{bib:pca}, or PCA for short is the most widespread dimension reduction algorithm. It works by finding \textit{principal components}. These are a series of $p$ unit vectors, where the $i$-th vector minimizes the average squared distance from the points to the line, while also being orthogonal to the first $i - 1$ vectors.
+
+PCA is the process of computing the principal components of the data and performing a change of basis, usually using only the first few principal components and ignoring the rest. This leads to a lower dimensional representation of the data, where only the components that preserve as much of the data's variation as possible.
+
+\subsection{Mathematical details}\label{subsec:mathematical-details}
+
+The goal of the PCA algorithm is to find unit basis vectors $\mathbf{w}_{(i)}$, such that the projected data inherits the maximum possible variance of the original data matrix $\mathbf{X}$.
+
+The first vector $\mathbf{w}_{(1)}$ has to satisfy
+
+\begin{equation}
+	\mathbf{w}_{(1)} = \arg\max_{\lVert \mathbf{w} \rVert = 1}{ \Bigg\{ \sum_i{ \big(\mathbf{x}_{(i)} \cdot \mathbf{w} \big)^2 } \Bigg\} }
+	\label{eq:pca:w1}
+\end{equation}
+
+The $k$-th component can be found by subtracting the first $k - 1$ components from $\mathbf{X}$
+
+\begin{equation}
+	\mathbf{\hat {X}}_{k}=\mathbf{X}-\sum_{s=1}^{k-1}\mathbf{X}\mathbf{w}_{(s)}\mathbf{w}_{(s)}^{\mathsf{T}}
+	\label{eq:pca_xhat}
+\end{equation}
+
+and then computing the first principal component of the new matrix:
+
+\begin{equation}
+	\mathbf{w}_{(k)}=\arg\max_{\lVert \mathbf{w} \rVert = 1}{\Bigg\{ \lVert \mathbf{\hat {X}}_{k}\mathbf{w} \rVert ^2 \Bigg\} }
+	\label{eq:pca:wk}
+\end{equation}
+
+The projected dataset is given by the following linear transformation:
+
+\begin{equation}
+	\mathbf{T} = \mathbf{XW}
+	\label{eq:pca:t}
+\end{equation}
+
+\subsection{Benefits of PCA}\label{subsec:benefits-of-pca}
+
+The popularity of PCA lies in its ease of use. It is easily accessible for data science use-cases, with a variety of implementations in a number of environments.
+
+The application of PCA on a given dataset is trivial. The only parameter of the algorithm is the output dimension, and the result is a deterministic function of the dataset.\footnote{In practice this isn't entirely true, since the search for $\mathbf{w}_{(i)}$ given by equation (\ref{eq:pca:w1}) cannot be implemented without some error.} This means that using PCA does not involve fine-tuning hyper-parameters, which can take a long time and takes away the focus from understanding the underlying data.
+
+Furthermore, the PCA algorithm is simple, without any computationally expensive steps. This results in an algorithm that uses minimal hardware resources. Even working with large datasets, no supercomputer is needed for the application of principal component analysis.
+
+\subsection{Limitations os PCA}\label{subsec:limitations-os-pca}
 
 
-\section{UMAP}
-
-\subsection{Mathematical formula}
+\section{t-SNE}\label{sec:t-sne}
 
 
-\section{TriMAP}
-
-\subsection{Mathematical formula}
+\section{UMAP}\label{sec:umap}
 
 
-\section{PaCMAP}
+\section{TriMAP}\label{sec:trimap}
 
-\subsection{Mathematical formula}
+
+\section{PaCMAP}\label{sec:pacmap}
+
 
