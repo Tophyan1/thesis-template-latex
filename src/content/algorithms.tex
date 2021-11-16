@@ -2,6 +2,63 @@
 \chapter{Dimension reduction algorithms}\label{ch:dimension-reduction-algorithms}
 %----------------------------------------------------------------------------
 
-A bevezető tartalmazza a diplomaterv-kiírás elemzését, történelmi előzményeit, a feladat indokoltságát (a motiváció leírását), az eddigi megoldásokat, és ennek tükrében a hallgató megoldásának összefoglalását.
 
-A bevezető szokás szerint a diplomaterv felépítésével záródik, azaz annak rövid leírásával, hogy melyik fejezet mivel foglalkozik.
+
+
+\section{PCA}\label{sec:pca}
+
+\textit{Principal Component Analysis}\cite{bib:pca}, or PCA for short is the most widespread dimension reduction algorithm. It works by finding \textit{principal components}. These are a series of $p$ unit vectors, where the $i$-th vector minimizes the average squared distance from the points to the line, while also being orthogonal to the first $i - 1$ vectors.
+
+PCA is the process of computing the principal components of the data and performing a change of basis, usually using only the first few principal components and ignoring the rest. This leads to a lower dimensional representation of the data, where only the components that preserve as much of the data's variation as possible.
+
+\subsection{Mathematical details}\label{subsec:mathematical-details}
+
+The goal of the PCA algorithm is to find unit basis vectors $\mathbf{w_{(i)}}$, such that the projected data inherits the maximum possible variance of the original data matrix $\mathbf{X}$.
+
+The first vector $\mathbf{w}_{(1)}$ has to satisfy
+
+\begin{equation}
+	\mathbf{w}_{(1)} = \arg\max_{\lVert \mathbf{w} \rVert = 1}{ \Bigg\{ \sum_i{ \big(\mathbf{x}_{(i)} \cdot \mathbf{w} \big)^2 } \Bigg\} }
+	\label{eq:pca:w1}
+\end{equation}
+
+The $k$-th component can be found by subtracting the first $k - 1$ components from $\mathbf{X}$
+
+\begin{equation}
+	\mathbf{\hat {X}}_{k}=\mathbf{X}-\sum_{s=1}^{k-1}\mathbf{X}\mathbf{w}_{(s)}\mathbf{w}_{(s)}^{\mathsf{T}}
+	\label{eq:pca_xhat}
+\end{equation}
+
+and then computing the first principal component of the new matrix:
+
+\begin{equation}
+	\mathbf{w}_{(k)}=\arg\max_{\lVert \mathbf{w} \rVert = 1}{\Bigg\{ \lVert \mathbf{\hat {X}}_{k}\mathbf{w} \rVert ^2 \Bigg\} }
+	\label{eq:pca:wk}
+\end{equation}
+
+The projected dataset is given by the following linear transformation:
+
+\begin{equation}
+	\mathbf{T} = \mathbf{XW}
+	\label{eq:pca:t}
+\end{equation}
+
+\subsection{Benefits of PCA}\label{subsec:benefits-of-pca}
+
+
+
+\subsection{Limitations os PCA}\label{subsec:limitations-os-pca}
+
+
+\section{t-SNE}\label{sec:t-sne}
+
+
+\section{UMAP}\label{sec:umap}
+
+
+\section{TriMAP}\label{sec:trimap}
+
+
+\section{PaCMAP}\label{sec:pacmap}
+
+
