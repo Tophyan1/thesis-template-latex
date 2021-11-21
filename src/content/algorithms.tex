@@ -47,22 +47,22 @@ The projected dataset is given by the following linear transformation:
 
 The popularity of PCA lies in its ease of use. It is easily accessible for data science use-cases, with a variety of implementations in a number of environments.
 
-The application of PCA on a given dataset is trivial. The only parameter of the algorithm is the output dimension, and the result is a deterministic function of the dataset.\footnote{In practice this isn't entirely true, since the search for $\mathbf{w}_{(i)}$ given by equation (\ref{eq:pca:w1}) cannot be implemented without some error.} This means that using PCA does not involve fine-tuning hyper-parameters, which can take a long time and takes away the focus from understanding the underlying data.
+The application of PCA on a given dataset is trivial. The only parameter of the algorithm is the output dimension, and the result is a deterministic function of the dataset.\footnote{In practice this isn't entirely true, since the search for $\mathbf{w}_{(i)}$ given by equation \eqref{eq:pca:w1} cannot be implemented without some error.} This means that using PCA does not involve fine-tuning hyper-parameters, which can take a long time and takes away the focus from understanding the underlying data.
 
 Furthermore, the PCA algorithm is simple, without any computationally expensive steps. This results in an algorithm that uses minimal hardware resources. Even working with large datasets, no supercomputer is needed for the application of principal component analysis.
 
 \subsection{Limitations of PCA}\label{subsec:limitations-of-pca}
 
 
-PCA has a number of limitations that make it unfavourable to us in certain use-cases. These limitations arise from certain assumptions made in its derivation. 
+PCA has a number of limitations that make it unfavourable to us in certain use-cases. These limitations arise from certain assumptions made in its derivation.
 
-One such assumption is the standardization of the used dataset. This means that the scaling of variables affect the result of PCA. Differently scaled features not only change the result of the transformation, but there is also a high likelihood of information loss. This can be counteracted by scaling the features of the dataset by its standard deviation, however, this is not always desirable.
+One such assumption is the standardization of the used dataset. This means that the scaling of variables affect the result of PCA. Differently scaled features not only change the outcome of the transformation, but there is also a high likelihood of information loss. This can be counteracted by scaling the features of the dataset by its standard deviation, however, this is not always desirable.
 
 Another assumption made is that the dataset contains only linear dependencies. PCA can capture linear correlations between the features but cannot capture nonlinear dependencies between them. In some cases, a transformation of the coordinates, such that the resulting representation only contains linear correlations between features, may enable PCA to successfully capture such dependencies. This is the basis for a generalization of the technique called \textit{nonlinear PCA}\cite{bib:nonlinpca}. This however requires a function that transforms the initial dataset to an entirely linearly dependent representation, which can be difficult to find, and in some cases is impossible.
 
 \section{t-SNE}\label{sec:t-sne}
 
-\textit{t-distributed stochastic neighbour embedding}\cite{bib:tsne}, abbreviated to t-SNE is one of the more widely methods for visualizing high dimensional data in usually two or three dimensions. The technique is based on stochastic neighbour embedding\cite{bib:sne} but utilising Student's t-distribution. 
+\textit{t-distributed stochastic neighbour embedding}\cite{bib:tsne}, abbreviated to t-SNE is one of the more widely methods for visualizing high dimensional data in usually two or three dimensions. The technique is based on stochastic neighbour embedding\cite{bib:sne} but utilising Student's t-distribution.
 
 \subsection{Algorithm}
 
@@ -70,19 +70,21 @@ t-SNE consists of two main stages. The first one is constructing a probability d
 
 In the first step of the algorithm, a probability distribution is constructed over the pairs of high dimensional objects. The exact formula for the probability assigned to the pair $\mathbf{x}_i$ and $\mathbf{x}_j$ is given by
 
-\begin{align}
+\begin{equation}
+	\label{eq:tsne:pi|j}
 	p_{i|j} =
 	\begin{cases}
 		{\frac {\exp(-\lVert \mathbf {x} _{i}-\mathbf {x} _{j}\rVert ^{2}/2\sigma _{i}^{2})}{\sum _{k\neq i}\exp(-\lVert \mathbf {x} _{i}-\mathbf {x} _{k}\rVert ^{2}/2\sigma _{i}^{2})}} & \textrm{if } i \neq j \\
 		\hfil 0 & \textrm{if } i = j
 	\end{cases}
-\end{align}
+\end{equation}
 
 Van der Maaten and Hilton in their paper\cite{bib:tsne} give a very good explanation for this probability. ,,The similarity of data point $\mathbf{x}_j$ to data point $\mathbf{x}_i$ is the conditional probability, $p_{j|i}$, that $\mathbf{x}_i$ would pick $\mathbf{x}_j$ as its neighbour if neighbours were picked in proportion to their probability density under a Gaussian centred at $\mathbf{x}_i$.''
 
-Since this formula depends on the order of points ($p_{i|j} \neq p_{j|i}$), we define  
+Since this formula depends on the order of points ($p_{i|j} \neq p_{j|i}$), we define
 
 \begin{equation}
+	\label{eq:tsne:pij}
 	p_{ij}={\frac {p_{j\mid i}+p_{i\mid j}}{2N}}
 \end{equation}
 
@@ -90,13 +92,25 @@ where $N$ is the number of data points. Note that $p_{ij} = p_{ji}$, $p_{ii} = 0
 
 For the lower dimensional map, a similar probability distribution is constructed over pairs of low dimensional point pairs.
 
-\begin{align}
+\begin{equation}
+	\label{eq:tsne:qij}
 	q_{ij} =
 	\begin{cases}
 		{\frac{(1+\lVert \mathbf{y}_{i} - \mathbf{y}_{j}\rVert^{2})^{-1}}{\sum_{k}\sum_{l \neq k}(1+\lVert \mathbf{y}_{k} - \mathbf{y}_{l}\rVert ^{2})^{-1}}} & \textrm{if } i \neq j \\
 		\hfil 0 & \textrm{if } i = j
 	\end{cases}
-\end{align}
+\end{equation}
+
+Herein a heavy-tailed \textit{Student's t-distribution} is used to measure the similarity between low-dimensional points in order to allow dissimilar objects to be modelled far apart in the map.
+
+The \textit{Kullback-Leibler divergence} (KL-divergence)\cite{bib:kldiv} of the probability distributions $P$ and $Q$ is then calculated as an error function:
+
+\begin{equation}
+	\label{eq:KLdiv}
+ 	\mathrm{KL} \left(P \parallel Q \right) = \sum_{i\neq j} p_{ij} \log{\frac{p_{ij}}{q_{ij}}}
+\end{equation}
+
+The final locations of the points $\mathrm{y}_i$ in the map are determined by minimising the Kullback-Leibler divergence of the probability distributions with respect to the points $\mathrm{y}_i$. This minimization is performed by gradient descent. The result of this optimization is a map that reflects the similarities between the high-dimensional inputs.
 
 \section{UMAP}\label{sec:umap}
 
