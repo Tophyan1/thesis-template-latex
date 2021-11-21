@@ -47,7 +47,7 @@ The projected dataset is given by the following linear transformation:
 
 The popularity of PCA lies in its ease of use. It is easily accessible for data science use-cases, with a variety of implementations in a number of environments.
 
-The application of PCA on a given dataset is trivial. The only parameter of the algorithm is the output dimension, and the result is a deterministic function of the dataset.\footnote{In practice this isn't entirely true, since the search for $\mathbf{w}_{(i)}$ given by equation \eqref{eq:pca:w1} cannot be implemented without some error.} This means that using PCA does not involve fine-tuning hyper-parameters, which can take a long time and takes away the focus from understanding the underlying data.
+The application of PCA on a given dataset is trivial. The only parameter of the algorithm is the output dimension, and the result is a deterministic function of the dataset.\footnote{In practice this is not entirely true, since the search for $\mathbf{w}_{(i)}$ given by equation \eqref{eq:pca:w1} cannot be implemented without some error.} This means that using PCA does not involve fine-tuning hyper-parameters, which can take a long time and takes away the focus from understanding the underlying data.
 
 Furthermore, the PCA algorithm is simple, without any computationally expensive steps. This results in an algorithm that uses minimal hardware resources. Even working with large datasets, no supercomputer is needed for the application of principal component analysis.
 
@@ -129,7 +129,9 @@ The algorithm has many hyperparameters, such as perplexity, and all parameters o
 
 \subsection{Disadvantages}
 
+The greatest drawback of using t-SNE lies in its extensive time and computation requirement. This is due in part to gradient descent, but the main reason for it is the use of computationally intensive operations, which will be detailed in section \ref{sec:umap}. On large datasets, using t-SNE requires powerful computers with large amounts of RAM and strong processors to be able to embed data points to a lower dimensional representation in sensible time.
 
+Another disadvantage of using t-SNE -- which is not uniquely a property of t-SNE -- is the time investment of finding optimal hyperparameters. Particularly unfit parameters result in an embedding where clusters do not even form, and points of data translate to be randomly placed in the output space.\cite{bib:distill}
 
 \section{UMAP}\label{sec:umap}
 
