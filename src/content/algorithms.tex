@@ -90,6 +90,13 @@ Since this formula depends on the order of points ($p_{i|j} \neq p_{j|i}$), we d
 
 where $N$ is the number of data points. Note that $p_{ij} = p_{ji}$, $p_{ii} = 0$ and $\displaystyle\sum_{i, j}p_{ij} = 1$.
 
+The value of $\sigma_{i}$ is set in such a way that the \textit{perplexity} of the conditional distribution equals the predefined perplexity value given to t-SNE as a hyperparameter. Specifically, SNE performs a binary search for the value of $\sigma_{i}$ that produces probability distribution with a fixed perplexity that is specified by the user. This perplexity is calculated by the following formula:
+
+\begin{equation}
+	\label{eq:tsne:perlexity}
+	Perp(P_i) = 2^{-\sum_{p_{j|i}} \log_2 p_{j|i}}
+\end{equation}
+
 For the lower dimensional map, a similar probability distribution is constructed over pairs of low dimensional point pairs.
 
 \begin{equation}
@@ -111,6 +118,18 @@ The \textit{Kullback-Leibler divergence} (KL-divergence)\cite{bib:kldiv} of the 
 \end{equation}
 
 The final locations of the points $\mathrm{y}_i$ in the map are determined by minimising the Kullback-Leibler divergence of the probability distributions with respect to the points $\mathrm{y}_i$. This minimization is performed by gradient descent. The result of this optimization is a map that reflects the similarities between the high-dimensional inputs.
+
+\subsection{Advantages over PCA}
+
+t-SNE is a nonlinear dimensionality reduction algorithm, and as such can be used on datasets with nonlinear dependencies -- relationships in the data that PCA cannot capture. This property is essential in applications in computational chemistry, \textit{de novo} molecule generation and bioinformatics, where gathered data is rarely linear in nature.
+
+Using t-SNE does not require standardization of data, as the used metric is the distance of data points. This however is not an advantage in cases where the data used is already standardized.
+
+The algorithm has many hyperparameters, such as perplexity, and all parameters of gradient descent, such as learning rate, early exaggeration and number of iterations. This means that data scientists can ,,tinker'' with t-SNE to find an embedding suitable for their use-case.
+
+\subsection{Disadvantages}
+
+
 
 \section{UMAP}\label{sec:umap}
 
