@@ -139,6 +139,11 @@ t-SNE can practically only embed into two or three dimensions, which means it is
 
 \section{UMAP}\label{sec:umap}
 
+\textit{Uniform Manifold Approximation and Projection}\cite{bib:umap}, or UMAP for short is a dimension reduction algorithm developed by Leland McInnes, John Healy and James Melville in 2018. It is constructed from a theoretical framework based in Riemannian geometry and algebraic topology. This technique was developed to overcome the shortcomings of t-SNE. The result is an algorithm that is competitive with t-SNE for visualization quality, arguably preserves more global structure and has superior run time performance. UMAP also has no restrictions on embedding dimension, making it suitable for general dimension reduction use cases.
+
+\subsection{Algorithm}
+
+There are many similarities between t-SNE and UMAP in their algorithm.
 
 
 \section{TriMAP}\label{sec:trimap}
