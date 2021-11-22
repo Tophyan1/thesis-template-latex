@@ -129,9 +129,13 @@ The algorithm has many hyperparameters, such as perplexity, and all parameters o
 
 \subsection{Disadvantages}
 
-The greatest drawback of using t-SNE lies in its extensive time and computation requirement. This is due in part to gradient descent, but the main reason for it is the use of computationally intensive operations, which will be detailed in section \ref{sec:umap}. On large datasets, using t-SNE requires powerful computers with large amounts of RAM and strong processors to be able to embed data points to a lower dimensional representation in sensible time.
+The greatest drawback of using t-SNE lies in its extensive time and computation requirement. This is due in part to gradient descent, but the main reason for it is the use of computationally intensive operations, which will be detailed in section \ref{sec:umap}. t-SNE does not scale well for larger datasets for this reason. Attempts to speed it up with \textit{FItSNE}\cite{bib:tsne:FItSNE} lead to large memory consumption, making it impossible to do analysis outside of computer clusters. On large datasets, using t-SNE requires powerful computers with large amounts of RAM and strong processors, or even GPU resources to be able to embed data points to a lower dimensional representation in sensible time.
 
 Another disadvantage of using t-SNE -- which is not uniquely a property of t-SNE -- is the time investment of finding optimal hyperparameters. Particularly unfit parameters result in an embedding where clusters do not even form, and points of data translate to be randomly placed in the output space.\cite{bib:distill}
+
+The t-SNE algorithm produces maps that do not preserve global structure of data. This means that while distances within clusters are a meaningful indicator for similarity, distances between clusters carry little to no meaning. This also means that t-SNE can translate similar points into two or more clusters.
+
+t-SNE can practically only embed into two or three dimensions, which means it is only useful for visualization purposes, not general dimension reduction. This is still a problem for the more modern FItSNE algorithm.
 
 \section{UMAP}\label{sec:umap}
 
