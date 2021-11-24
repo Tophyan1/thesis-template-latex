@@ -10,8 +10,17 @@ High dimensionality introduces redundancy in the representation of data points. 
 
 Latent representation of data is advantageous for eliminating redundancy in the dataset. This is because features taken from real descriptors (such as number of carbon atoms in a molecule and molar mass) are often not independent of each other. These correlations of dimensions lead to spaces of lower dimension with near equivalent descriptive power to the original space. 
 
+High dimensionality also poses challenges in interpreting data. Correlations between features, or sets of features become difficult to discover as the number of potential pairings increase. Datasets with more than three dimensions pose additional challenges as visualizing such datasets is difficult and often impractical, rendering visual interpretation methods unusable.
+
 \section{Exploring the chemical space}\label{sec:exploring-the-chemical-space}
 
+One of the more important goals of modern pharmaceutical research is the discovery of novel drug-like molecules. This development however is a long and costly process. The entire procedure can in some cases take 20 years \cite{bib:rndprod}, and may cost as much as 2.6 billion dollars \cite{bib:2.6billion}. During the development, thousands of potential compounds are being tested, of which only half a dozen candidates will reach clinical trials, where their effects are tested in humans. In most cases, only one drug is approved so that it can reach doctors and patients.
+
+In order to reduce the time cost of the procedure, as well as the financial cost, targeted search of the chemical space is necessary. This conclusion is also supported by the fact that while scientists have successfully synthesised millions of molecules with molar weight less than 500, the number of potential such molecules may be $10^{24}$, or according to some estimates, even $10^{60}$ \cite{bib:1060}, making random searches of the chemical space effectively impossible.
+
+Using targeted searching on the space of drug-like molecules is a heavily researched topic. Algorithms exist, however, finding efficient searching algorithms without enumerating every element of the subspace is difficult. Deep neural networks have been used for \textit{de novo} molecule generation with promising results \cite{bib:molsearch}. One particularly promising method is the use of VAE's \textit{variational autoencoders} \cite{bib:vae} to transform the chemical space into a latent space that is smooth over chemical structure.
+
+The number of dimensions of an autoencoder's latent space is usually between 32 and 128, which is rather large, and carries the challenges in understanding of the underlying structure presented in section \ref{sec:motivation}. The analysis of such latent spaces is important for finding novel molecules with desirable drug-like properties.
 
 \section{Unsupervised clustering}\label{sec:unsupervised-clustering}
 
