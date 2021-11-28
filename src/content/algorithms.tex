@@ -2,8 +2,9 @@
 \chapter{Dimension reduction algorithms}\label{ch:dimension-reduction-algorithms}
 %----------------------------------------------------------------------------
 
+For completeness, this chapter contains the theoretical background of PCA, t-SNE, UMAP, TriMAP and PaCMAP in common notation. After introducing every algorithm, their advantages and disadvantages are listed. At the end of the chapter, I compare these algorithms on a theoretical basis without my results working on the dataset detailed in \ref{sec:used-data}.
 
-
+$\mathbf{X} \in \mathbb{R}^{N\times M}$ is used to denote the original dataset, for which an embedding $\mathbf{Y} \in \mathbb{R}^{N\times K}$ is constructed. For each observation $i \in [N]$, $\mathbf{x}_i$ and $\mathbf{y}_i$ is used to denote its corresponding representation in $\mathbf{X}$ and $\mathbf{Y}$ respectively. $\mathbf{x}_i$ is a given value and $\mathbf{y}_i$ is a $K$-dimensional decision variable. The distance between $\mathbf{x}_i$ and $\mathbf{x}_j$, which is used as a measure of similarity between the points is denoted by $d(\mathbf{x}_i, \mathbf{x}_j)$. This distance metric may be defined differently between methods, but it is always a metric in $\mathbb{R}^{K}$.
 
 \section{PCA}\label{sec:pca}
 
@@ -25,7 +26,7 @@ The first vector $\mathbf{w}_{(1)}$ has to satisfy
 The $k$-th component can be found by subtracting the first $k - 1$ components from $\mathbf{X}$
 
 \begin{equation}
-	\mathbf{\hat {X}}_{k}=\mathbf{X}-\sum_{s=1}^{k-1}\mathbf{X}\mathbf{w}_{(s)}\mathbf{w}_{(s)}^{\mathsf{T}}
+	\mathbf{\hat{X}}_{k}=\mathbf{X}-\sum_{s=1}^{k-1}\mathbf{X}\mathbf{w}_{(s)}\mathbf{w}_{(s)}^{\mathsf{T}}
 	\label{eq:pca_xhat}
 \end{equation}
 
@@ -94,7 +95,7 @@ The value of $\sigma_{i}$ is set in such a way that the \textit{perplexity} of t
 
 \begin{equation}
 	\label{eq:tsne:perlexity}
-	Perp(P_i) = 2^{-\sum_{p_{j|i}} \log_2 p_{j|i}}
+	Perplexity = 2^{-\sum_{p_{j|i}} \log_2 p_{j|i}}
 \end{equation}
 
 For the lower dimensional map, a similar probability distribution is constructed over pairs of low dimensional point pairs.
@@ -116,6 +117,8 @@ The \textit{Kullback-Leibler divergence} (KL-divergence)\cite{bib:kldiv} of the 
 	\label{eq:KLdiv}
  	\mathrm{KL} \left(P \parallel Q \right) = \sum_{i\neq j} p_{ij} \log{\frac{p_{ij}}{q_{ij}}}
 \end{equation}
+
+According to the original paper \cite{bib:tsne}, the output matrix $Y$ is initialized using the multivariate Normal distribution  $\mathcal{N}(0,10^{-4}I)$, where $I$ denotes the $K$-dimensional identity matrix, and $K$ is the dimension of the output of t-SNE. In practice however, different initializations are utilised. One popular initialization is PCA, as it efficiently explores linear correlations between features of data.
 
 The final locations of the points $\mathrm{y}_i$ in the map are determined by minimising the Kullback-Leibler divergence of the probability distributions with respect to the points $\mathrm{y}_i$. This minimization is performed by gradient descent. The result of this optimization is a map that reflects the similarities between the high-dimensional inputs.
 
@@ -141,17 +144,117 @@ t-SNE can practically only embed into two or three dimensions, which means it is
 
 \textit{Uniform Manifold Approximation and Projection}\cite{bib:umap}, or UMAP for short is a dimension reduction algorithm developed by Leland McInnes, John Healy and James Melville in 2018. It is constructed from a theoretical framework based in Riemannian geometry and algebraic topology. This technique was developed to overcome the shortcomings of t-SNE. The result is an algorithm that is competitive with t-SNE for visualization quality, arguably preserves more global structure and has superior run time performance. UMAP also has no restrictions on embedding dimension, making it suitable for general dimension reduction use cases.
 
+The theoretical description of UMAP works in terms of \textit{fuzzy simplicial sets}, which are higher-dimensional generalizations of directed graphs, partially ordered sets and categories. Indeed, from a practical computational perspective, UMAP can ultimately be described in terms of, construction of, and operations on, weighted graphs. This puts UMAP in the class of k-neighbour based graph learning algorithms such as Laplacian Eigenmaps \cite{bib:laplacian_eigenmaps}, Isomap \cite{bib:isomap}, or t-SNE.
+
+The theoretical description of the algorithm uses a few basic assumptions. For completeness, these are:
+
+\begin{itemize}
+	\item There exists a manifold on which the data would be uniformly distributed.
+	\item The underlying manifold of interest is locally connected.
+	\item Preserving the topological structure of this manifold is the primary goal.
+\end{itemize}
+
 \subsection{Algorithm}
 
 There are many similarities between the t-SNE and UMAP algorithm. Both techniques consist of two distinct phases, which are similar in many ways and as such the most effective way to understand UMAP is to highlight the differences between the two.
 
-The first phase of UMAP is constructing a high dimensional graph over the point of data, in order to approximate the topology of the dataset. 
+The first phase of UMAP is constructing a high dimensional graph over the point of data using k-neighbour search, in order to approximate the topology of the dataset.
+
+The first step in constructing the higher dimensional weighted graph is finding the $k$ nearest neighbours for every observation for a given distance metric $d(\mathbf{x}_i, \mathbf{x}_j)$. This metric is \textit{typically} Euclidean, however, most implementations offer other metrics. For every data point, the minimum positive distance from observation $i$ to a neighbour is calculated as $\rho_i$. In mathematical terms:
+
+\begin{equation}
+	\rho_i = \min \left\lbrace  d(\mathbf{x}_i, \mathbf{x}_{i_j}) \vert 1 \leq j \leq k, d(\mathbf{x}_i, \mathbf{x}_{i_j}) > 0 \right\rbrace
+\end{equation}
+
+After this, $\sigma_{i}$ is computed for every data point, by solving the equation:
+
+\begin{equation}
+	\log_2(k)=\sum_{j=1}^{k}\exp\left({\frac{-\max\{0,d(\mathbf{x}_i, \mathbf{x}_j)-\rho_i\}}{\sigma_i}}\right),
+\end{equation}
+
+or in a slightly different form:
+
+\begin{equation}
+	k=2^{\sum_{j=1}^{k}\exp\left({\frac{-\max\{0,d(\mathbf{x}_i, \mathbf{x}_j)-\rho_i\}}{\sigma_i}}\right)}.
+\end{equation}
+
+This computation is the counterpart of equation \eqref{eq:tsne:perlexity} of t-SNE. Note that this equation does not contain a $\log_2$ component, which is computationally expensive, resulting in the computation of $\sigma_i$ being faster in the UMAP algorithm.
+
+The weight function is defined between $\mathbf{x}_i$ and $\mathbf{x}_j$:
+
+\begin{equation}
+	w(\mathbf{x}_i, \mathbf{x}_j) = \exp\left({\frac{-\max\{0,d(\mathbf{x}_i, \mathbf{x}_j) - \rho_i\}} {\sigma_i}} \right).
+\end{equation}
+
+The weighted graph $G$ is defined whose vertices are individual observations from $\mathbf{X}$ and where for each edge $(i, j)$ it holds that $\mathbf{x}_i$ is a nearest neighbour of $\mathbf{x}_j$, or vice versa. The weight of an edge $(i, j)$ is the symmetrization of $w(\mathbf{x}_i, \mathbf{x}_j)$ and $w(\mathbf{x}_j, \mathbf{x}_i)$. This symmetric weight is defined as:
+
+\begin{equation}
+	\bar{w}_{i,j} = w(\mathbf{x}_i,\mathbf{x}_j)+w(\mathbf{x}_j,\mathbf{x}_i)-w(\mathbf{x}_i,\mathbf{x}_j)\cdot w(\mathbf{x}_j,\mathbf{x}_i).
+\end{equation}
+
+Note that this $G$ graph is analogous to t-SNE's $P$ probability distribution matrix.
+
+The second phase of UMAP is the construction and optimization of output matrix (graph) $Y$. The initialization is performed canonically by using spectral embedding. As with t-SNE, implementations of UMAP usually offer different initialization options.
+
+UMAP uses a force directed graph layout algorithm to optimise $Y$. This algorithm applies attractive forces along edges in $G$ and repulsive forces along $\bar{G}$, the complement of $G$. For every edge $(i, j)$ in $G$, the attractive force is defined as:
+
+\begin{equation}
+	\alpha\cdot
+	\frac{-2ab\|\mathbf{y}_i-\mathbf{y}_j\|_2^{2(b-1)}}{1+a\left(\|\mathbf{y}_i-\mathbf{y}_j\|_2^{2}\right)^b}
+	\bar{w}_{i,j}(\mathbf{y}_i-\mathbf{y}_j),
+\end{equation}
+
+while for every edge $(i, k)$  that is not in $G$, the following repulsive force is calculated:
+
+\begin{equation}
+	\alpha\cdot
+	\frac{b}{\left(\epsilon+\|\mathbf{y}_i-\mathbf{y}_k\|_2^2\right)\left(1+a\left(\|\mathbf{y}_i-\mathbf{y}_k\|_2^{2}\right)^b\right)}
+	\left(1- \bar{w}_{i,k}\right)(\mathbf{y}_i-\mathbf{y}_k),
+\end{equation}
+
+where $\epsilon$ is a small positive constant, to prevent division by zero.
+
+The hyperparameters $a$ and $b$ are tuned using the data by fitting the function $\left(1+a\left(\|\mathbf{y}_i-\mathbf{y}_j\|_2^{2}\right)^b\right)^{-1}$ to the non-normalized weight function $\exp\left({-\max\{0,d(\mathbf{x}_i, \mathbf{x}_j)-\rho_i\}}\right)$ with the goal of creating a smooth approximation. The hyperparameter $\alpha$ indicates the learning rate. This family of curves is similar to Student's t-distribution used by t-SNE \eqref{eq:tsne:qij}, but without integration in the denominator. This speeds up the calculation.
+
+\subsection{Advantages}
+
+
+
+\subsection{Shortcomings}
+
 
 
 \section{TriMAP}\label{sec:trimap}
 
 
 
+\subsection{Algorithm}
+
+
+
+\subsection{Benefits}
+
+
+
+\subsection{Drawbacks}
+
+
+
 \section{PaCMAP}\label{sec:pacmap}
 
+
+
+\subsection{Algorithm}
+
+
+
+\subsection{Advantages}
+
+
+
+\subsection{Disadvantages}
+
+
+
+\section{Theoretical comparison of algorithms}
 
