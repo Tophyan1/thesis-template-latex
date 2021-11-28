@@ -120,7 +120,7 @@ The \textit{Kullback-Leibler divergence} (KL-divergence)\cite{bib:kldiv} of the 
 
 According to the original paper \cite{bib:tsne}, the output matrix $Y$ is initialized using the multivariate Normal distribution  $\mathcal{N}(0,10^{-4}I)$, where $I$ denotes the $K$-dimensional identity matrix, and $K$ is the dimension of the output of t-SNE. In practice however, different initializations are utilised. One popular initialization is PCA, as it efficiently explores linear correlations between features of data.
 
-The final locations of the points $\mathrm{y}_i$ in the map are determined by minimising the Kullback-Leibler divergence of the probability distributions with respect to the points $\mathrm{y}_i$. This minimization is performed by gradient descent. The result of this optimization is a map that reflects the similarities between the high-dimensional inputs.
+The final locations of the points $\mathrm{y}_i$ in the map are determined by minimising the Kullback-Leibler divergence of the probability distributions with respect to the points $\mathrm{y}_i$. This minimization is performed by gradient descent \cite{bib:gd}. The result of this optimization is a map that reflects the similarities between the high-dimensional inputs.
 
 \subsection{Advantages over PCA}
 
@@ -186,6 +186,8 @@ The weight function is defined between $\mathbf{x}_i$ and $\mathbf{x}_j$:
 	w(\mathbf{x}_i, \mathbf{x}_j) = \exp\left({\frac{-\max\{0,d(\mathbf{x}_i, \mathbf{x}_j) - \rho_i\}} {\sigma_i}} \right).
 \end{equation}
 
+Note that this is weight function serves the same purpose as $p_{i|j}$ in t-SNE. A seemingly small but important difference between  the two formulas is the omission of normalization. This has dramatic effect on performance, since summation and integration are computationally expensive operations.
+
 The weighted graph $G$ is defined whose vertices are individual observations from $\mathbf{X}$ and where for each edge $(i, j)$ it holds that $\mathbf{x}_i$ is a nearest neighbour of $\mathbf{x}_j$, or vice versa. The weight of an edge $(i, j)$ is the symmetrization of $w(\mathbf{x}_i, \mathbf{x}_j)$ and $w(\mathbf{x}_j, \mathbf{x}_i)$. This symmetric weight is defined as:
 
 \begin{equation}
@@ -216,13 +218,25 @@ where $\epsilon$ is a small positive constant, to prevent division by zero.
 
 The hyperparameters $a$ and $b$ are tuned using the data by fitting the function $\left(1+a\left(\|\mathbf{y}_i-\mathbf{y}_j\|_2^{2}\right)^b\right)^{-1}$ to the non-normalized weight function $\exp\left({-\max\{0,d(\mathbf{x}_i, \mathbf{x}_j)-\rho_i\}}\right)$ with the goal of creating a smooth approximation. The hyperparameter $\alpha$ indicates the learning rate. This family of curves is similar to Student's t-distribution used by t-SNE \eqref{eq:tsne:qij}, but without integration in the denominator. This speeds up the calculation.
 
+The last major difference between the t-SNE algorithm and UMAP is that while the former uses regular gradient descent \cite{bib:gd}, UMAP uses stochastic gradient descent \cite{bib:sgd}. This both speeds up the computations and consumes less memory.
+
 \subsection{Advantages}
 
+UMAP has quite a few advantages over PCA and t-SNE. As a nonlinear dimension reduction algorithm, UMAP is able to discover nonlinear correlations in the dataset, just like t-SNE. However, while practical application of t-SNE is only feasible in two or three dimensions due to tree-based algorithms for nearest neighbour search such as Barnes-Hut simulation \cite{bib:barnes-hut}, UMAP has no such limitations, making it useful for general dimension reduction use-cases.
 
+While UMAP also has many hyperparameters, these are more intuitive than that of t-SNE. Specifically, the perplexity parameter of t-SNE is only indirectly affecting $\sigma_i$, while UMAP's \texttt{n\_neighbour} parameter has a direct effect on $\sigma_i$. This means that users can more intuitively tune the algorithm for their use-cases.
+
+In terms of performance, UMAP has been designed to run faster that t-SNE by omitting computationally expensive calculations and replacing them with similar but more easily executable formulas. This approach does not sacrifice quality of embedding while simultaneously speeding up calculations.
+
+UMAP also consumes less memory overall, since instead of gradient descent, it uses stochastic gradient descent, therefore it needs to keep the gradients for only a subset of the observations.
+
+The last and often overlooked advantage of UMAP lies in its derivation. UMAP is rigorously built from mathematical foundations, proving every step of the algorithm. As opposed to all other algorithms from this paper (with the exception of PCA), UMAP's steps are mathematically proven to work, and do not rely on a heuristic approach.
 
 \subsection{Shortcomings}
 
+As do all dimension reduction algorithms, UMAP has certain disadvantages when used on some datasets. Similarly to t-SNE, UMAP is a \textit{near-sighted} algorithm, meaning while it is very capable of preserving local structure of the input space, it struggles to preserve global structure. This however is not as severe in  UMAP as in t-SNE, since the hyperparameter \texttt{n\_neighbour}, which determines the number of nearest neighbours in the initial phase of the algorithm when set to large values, results in an embedding with more global structure preserved. This however can increase memory usage of the algorithm.
 
+The computational representation of $k$-nearest neighbour search builds a matrix with $N \times N \times k$ values. With large datasets, increasing $k$ leads to large memory requirements, especially since with large values of $N$, preserving global structure requires an even larger $k$ value than for a smaller $N$. In practice, this leads to projection of large datasets resulting in less global structure preservation.
 
 \section{TriMAP}\label{sec:trimap}
 
