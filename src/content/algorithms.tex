@@ -80,7 +80,7 @@ In the first step of the algorithm, a probability distribution is constructed ov
 	\end{cases}
 \end{equation}
 
-Van der Maaten and Hilton in their paper\cite{bib:tsne} give a very good explanation for this probability. ,,The similarity of data point $\mathbf{x}_j$ to data point $\mathbf{x}_i$ is the conditional probability, $p_{j|i}$, that $\mathbf{x}_i$ would pick $\mathbf{x}_j$ as its neighbour if neighbours were picked in proportion to their probability density under a Gaussian centred at $\mathbf{x}_i$.''
+Van der Maaten and Hilton in their paper\cite{bib:tsne} give a very good explanation for this probability. ``The similarity of data point $\mathbf{x}_j$ to data point $\mathbf{x}_i$ is the conditional probability, $p_{j|i}$, that $\mathbf{x}_i$ would pick $\mathbf{x}_j$ as its neighbour if neighbours were picked in proportion to their probability density under a Gaussian centred at $\mathbf{x}_i$.''
 
 Since this formula depends on the order of points ($p_{i|j} \neq p_{j|i}$), we define
 
@@ -128,7 +128,7 @@ t-SNE is a nonlinear dimensionality reduction algorithm, and as such can be used
 
 Using t-SNE does not require standardization of data, as the used metric is the distance of data points. This however is not an advantage in cases where the data used is already standardized.
 
-The algorithm has many hyperparameters, such as perplexity, and all parameters of gradient descent, such as learning rate, early exaggeration and number of iterations. This means that data scientists can ,,tinker'' with t-SNE to find an embedding suitable for their use-case.
+The algorithm has many hyperparameters, such as perplexity, and all parameters of gradient descent, such as learning rate, early exaggeration and number of iterations. This means that data scientists can ``tinker'' with t-SNE to find an embedding suitable for their use-case.
 
 \subsection{Disadvantages}
 
@@ -240,27 +240,161 @@ The computational representation of $k$-nearest neighbour search builds a matrix
 
 \section{TriMAP}\label{sec:trimap}
 
+Both t-SNE and UMAP are considered near-sighted algorithms, meaning they preserve only local structure as opposed to global structure. While PCA is designed to preserve global structure, it suffers from limitations of nonlinear correlations. TriMAP \cite{bib:trimap} is a graph-based nonlinear dimension reduction algorithm that aims to improve global structure preservation by using triplets of data points instead of pairs.
+
 
 
 \subsection{Algorithm}
 
+The algorithm defines triplets $(i, j, k)$ such that $d(\mathbf{x}_i, \mathbf{x}_j) < d(\mathbf{x}_i, \mathbf{x}_k)$. A subset of all triplets $\mathcal{T} := \left\lbrace (i,j,k) \right\rbrace$ is used to approximate the structure of the dataset.
 
+$\mathcal{T}$ is constructed in the following way:
+
+\begin{itemize}
+	\item For each observation $i$, \texttt{n\_inliers} nearest neighbour is found according to the distance metric used.
+	\item For every sample $i$ and one of its neighbour $j$, \texttt{n\_outliers} points $k$ are sampled that are not neighbours of $i$.
+	\item For each point $i$, two points are randomly sampled to make a triplet. This is repeated \texttt{n\_random} times.
+	\item This results in set $\mathcal{T}$ that contains $\vert \mathcal{T} \vert = (\texttt{n\_inliers} \cdot \texttt{n\_outliers} + \texttt{n\_random}) \cdot N$ triplets.
+\end{itemize}
+
+The loss function is defined in multiple steps. The first one is the definition of $s(\mathbf{y}_i, \mathbf{y}_j)$ the following way:
+
+\begin{equation}
+	s(\mathbf{y}_i,\mathbf{y}_j)=\left(1+\|\mathbf{y}_i-\mathbf{y}_j\|^2\right)^{-1}
+\end{equation}
+
+This is very similar to UMAP's formula for finding its hyperparameters $a$ and $b$, and to t-SNE's Student's t-distribution.
+
+A weight $w_{i,j,k}$ is defined for every triplet.
+
+\begin{equation}
+	\omega_{i,j,k} = \log\left(1+500\left(\frac{e^{d^2_{i,k}-d^2_{i,j}}}{\max_{(i',j',k')\in\mathcal{T}} e^{d^2_{i',k'}-d^2_{i',j'}}}+10^{-4}\right)\right),
+\end{equation}
+
+where $d^2_{i,j}$ is defined as
+
+\begin{equation}
+	\label{eq:trimap:d2}
+	d^2_{i,j} = \frac{d^2(\mathbf{x}_i, \mathbf{x}_j)}{\sigma_i\sigma_j},
+\end{equation}
+
+and $\sigma_i$ is the average distance between $\mathbf{x}_i$ and the set of its 4--6 nearest neighbours.
+
+Intuitively, $\omega_{i,j,k}$ is larger when the distances in the tuple are more significant, suggesting that it is more important to preserve this relation in the low-dimensional space.
+
+For every triplet, a certain loss value can be calculated:
+
+\begin{equation}
+	l_{i,j,k}=\omega_{i,j,k}\frac{s(\mathbf{y}_i,\mathbf{y}_k)}{s(\mathbf{y}_i,\mathbf{y}_j)+s(\mathbf{y}_i,\mathbf{y}_k)}
+\end{equation}
+
+Note that $\omega_{i,j,k}$ is a static value which is only needed to calculate once based on the higher dimensional input triplets. $s(\mathbf{y}_i, \mathbf{y}_j)$ approaches 1 then $\mathbf{y}_i$ and $\mathbf{y}_j$ are closer and approaches 0 if the points are very distant.  This implies that the fraction in the triplet loss function would approach the maximal value of 1 when $i$ is placed close to $k$ and far away from $j$ (which contradicts the definition of a triplet $(i,j,k)$ where $i$ should be closer to $j$ than to $k$). Otherwise, as $k$ moves further away, the loss approaches 0.
+
+For the total loss of the embedding the individual triplet loss values are summed.
+
+\begin{equation}
+	l_{\text{\tiny TriMAP}} = \sum_{(i,j,k)\in\mathcal{T}}l_{i,j,k}
+\end{equation}
+
+As with t-SNE, TriMAP uses full batch gradient descent to optimize the low dimensional embedding. The initialization of points in lower dimensional space is done via PCA initialization. 
+
+TriMAP intuitively tries to find a representation of data that preserves the ordering of distances within a subset of triplets. These triplets are mostly made up from a central point with one of its nearest neighbour and another non-neighbour point, with a few triplets containing randomly chosen observations. Admittedly, the algorithm contains many design choices that work empirically, but it is not evident which of these choices are essential to creating good visualizations.
 
 \subsection{Benefits}
 
+The main benefit of TriMAP is the preservation of the global structure of the dataset. While t-SNE and to some extent UMAP struggles to find an embedding that faithfully captures global structure of the input, TriMAP can find such an embedding with little difficulties.
 
+The loss function of TriMAP uses very computationally inexpensive operations, which in theory make the algorithm faster than even UMAP. This theoretical advantage is entirely negated by the implementations available. UMAP has both a multi-threaded and GPU implementation, while TriMAP only has one single threaded implementation as of writing this paper. 
 
 \subsection{Drawbacks}
 
+Since the sampled triplets contain mostly neighbours with another distant point, with some randomly chosen triplets mixed in, \textit{theoretically} TriMAP preserves both local and global structure within the dataset. In practice however, it is typically found to be prone to struggle with local structure.
 
+The main hyperparameters of the algorithm should control the focus on global versus local structure, however, in practice, these parameters change little on the outcome of the algorithm.
 
 \section{PaCMAP}\label{sec:pacmap}
 
+\textit{Pairwise Controlled Manifold Approximation Projection}, or PaCMAP \cite{bib:pacmap} for short is the newest dimension reduction algorithm out of the examined ones. It was designed in 2020 by studying the previous three algorithms, uncovering a common interpretation of all of them being graph-based algorithms with nodes being observations and edges constituting a similarity metric between these observations. With this insight, the writers define a set of principles of a good dimension reduction algorithm. They investigate the choice of loss function, the initialization and the algorithm's robustness to initialization. They also investigate the optimization of lower dimensional representation to be able to capture both local and global structure.
 
+The outcome of this investigation is the algorithm called PaCMAP, which satisfies all principles set by the authors. 
 
 \subsection{Algorithm}
 
+Similarly to t-SNE and UMAP, PaCMAP uses pairs of observations to approximate the topology of the dataset. These pair are sorted into three distinct groups:
 
+\begin{itemize}
+	\item Near pairs: Pair $i$ with its nearest $n_{NB}$ neighbours defined by the scaled distance $d^{2,\textrm{select}}_{ij}$. This distance is defined in equation \eqref{eq:pacmap:dselect}. Algorithmically, this selection comes from first performing a $k$-nearest neighbour search on the dataset with $k = n_{NB} + 50$ and then selecting the subset of this where the scaled distance is lowest. 
+	\item Mid-near pairs: For every observation $i$, six other points from the dataset is sampled. The second closest one id paired with $i$. The number of mid-near pairs is proportional to the number of near pairs, and their ratio is a hyperparameter of the algorithm. $n_{MN} = \lfloor n_{NB} \times MN\_ratio\rfloor$
+	\item Further pairs: These are constructed by sampling non-neighbours. The number os such pairs is $n_{FP} = \lfloor n_{NB} \times FP\_ratio \rfloor$
+\end{itemize}
+
+The scaled distance metric is defined as
+
+\begin{equation}
+	\label{eq:pacmap:dselect}
+	d^{2,\textrm{select}}_{i,j}=\frac{\|\mathbf{x}_{i}-\mathbf{x}_{j}\|^2}{\sigma_i \sigma_j},
+\end{equation}
+
+where $\sigma_i$ is the average distance between observation $i$ and its Euclidean nearest fourth to sixth neighbours. These values are not computed for every observation, since only a subset of them are used in the algorithm. This equation is very similar to TriMAP's formula for calculating square distance between pairs in equation \eqref{eq:trimap:d2}. 
+
+The embedding matrix $\mathbf{Y}$ is initialized by using PCA. In practice, other initializations are permitted by implementations, should the need arise.
+
+For the loss function, the following shorthand is used:
+
+\begin{equation}
+	\tilde{d}_{ij} = \|\mathbf{y}_i-\mathbf{y}_j\|^2+1
+\end{equation}
+
+As for the full loss function:
+
+\begin{equation}
+	\begin{aligned}
+		\textrm{Loss}^{\textrm{PaCMAP}} &=
+		w_{NB}\cdot\sum_{i,j \text{ are neighbours}}\frac{\tilde{d}_{ij}}{10 + \tilde{d}_{ij}} \\ 
+		& + w_{MN}\cdot\sum_{i,k \text{ are mid-near pairs}}\frac{\tilde{d}_{ik}}{10000 + \tilde{d}_{ik}} \\
+		& + w_{FP}\cdot\sum_{i,l \text{ are further points}}\frac{1}{1 + \tilde{d}_{il}}.    
+	\end{aligned}
+\end{equation}
+
+The optimization consists of three distinct stages. In each stage $w_{NB}, w_{MN} \textrm{ and } w_{FP}$ are set differently to allow focus on more local or global structure preservation. In the first stage through iterations $\tau_1$ to $\tau_2$ the weights are set by the following equations:
+
+\begin{equation}
+	\begin{aligned}
+		w_{NB} & = & 2 \\
+		w_{MN}(t) & = & 1000\cdot\left( 1-\frac{t-1}{100} \right) + 3\cdot \frac{t-1}{100} \\
+		w_{FP} & = & 1
+	\end{aligned}
+\end{equation}
+
+In this phase the weight of the mid-near pairs gradually decrease to transition from focusing on global structure to focusing on local structure.
+
+In the second phase, from $\tau_2$ to $\tau_3$, the values of the weights are:
+
+\begin{equation}
+	\begin{aligned}
+		w_{NB} & = & 3 \\
+		w_{MN} & = & 3 \\
+		w_{FP} & = & 1
+	\end{aligned}
+\end{equation}
+
+In this stage, the goal is to improve the local structure while maintaining the global structure captured during the first phase by assigning a small (but not zero) weight for mid-near pairs.
+
+Together, the first two phases try to avoid local optima using a process that bares similarities with simulated annealing and the ``early exaggeration'' technique used by t-SNE. However, early exaggeration places more emphasis on neighbours, rather than mid-near points, whereas PaCMAP focuses on mid-near pairs first and neighbours later.
+
+In the third phase, for the rest of the iterations, the weights are set to
+
+\begin{equation}
+	\begin{aligned}
+		w_{NB} & = & 1 \\
+		w_{MN} & = & 0 \\
+		w_{FP} & = & 1.
+	\end{aligned}
+\end{equation}
+
+By reducing the weight of mid-near points to zero and lowering effects of near points, the repulsive force of further points are magnified, to help separate clusters to make borders clearer. This stage has a greater effect on datasets with primarily local structure. 
+
+According to the original paper, gradient descent is used to optimize the embedding. Adam \cite{bib:adam} optimizer is used to regulate this procedure.
 
 \subsection{Advantages}
 
