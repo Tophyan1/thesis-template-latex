@@ -10,6 +10,8 @@ The data I used was the latent representation of more than 1.6 million unique SM
 
 The dataset had more features than the SMILES and latent representation of the molecules. Certain chemical descriptors, such as \textit{quantitative estimate of drug-likeness} (qed \cite{bib:qed}), \textit{synthetic accessibility score} (SaS \cite{bib:sas}) among many others. Overall, seven such chemical descriptors were included in the database along with one feature to indicate the database of origin of the string. The last feature was an indicator of the whether the data point was in the test set or not during the training of the model. These features -- with the exception of the last two -- were all factored into the loss function of the model, so the latent space should be relatively smooth over these values.
 
+It should be noted that the distribution of the latent space of the variational autoencoder is Gaussian in nature, therefore no standardization is needed for algorithms such as PCA for proper embedding.
+
 \section{Hardware resources}\label{sec:hardware-resources}
 
 In terms of hardware, the requirements were quite beyond a standard personal computer's specification. Fortunately, I was granted access to a department server called Phoenix. This computer has 12 processing cores and 64 GB of RAM. In terms of GPU resources, it has an nVidia TITAN Xp graphics card, which I was able to use for running a t-SNE implementation to drastically reduce the runtime of the algorithm.
