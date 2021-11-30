@@ -396,13 +396,54 @@ By reducing the weight of mid-near points to zero and lowering effects of near p
 
 According to the original paper, gradient descent is used to optimize the embedding. Adam \cite{bib:adam} optimizer is used to regulate this procedure.
 
-\subsection{Advantages}
+\subsection{Strengths}
 
+PaCMAP has been designed with all previous methods in mind, collecting their strengths and weaknesses to create the best algorithms. In general dimension reduction, PaCMAP delivers a good middle ground between preserving only local and only global structure. 
 
+\subsection{Weaknesses}
 
-\subsection{Disadvantages}
+The principles on which PaCMAP are built are not proven theorems, only assumptions. They are made from intuitive reasoning, however, no rigorous mathematical proof backs them up.
 
-
+Similarly to TriMAP, PaCMAP currently does only have one implementation that only uses a single CPU core. This puts PaCMAP at a disadvantage in performance when tested against GPU implementations os t-SNE and UMAP. This is not an intrinsic weakness of the algorithm, as PaCMAP can theoretically be parallelized.
 
 \section{Theoretical comparison of algorithms}
 
+We have seen that the different algorithms were designed with different goals in mind. While one algorithm aims to reduce the numbers of dimensions with retaining as much of the variance of the original dataset, another makes effort to faithfully preserve the local and global structure of its observations. For selecting the best algorithm for a certain use-case however, a comprehensive comparison is helpful. In this section, I will compare the different methods, highlighting their similarities and differences. Figures shown in this section come from Yingfang Wang's paper \cite{bib:pacmap}.
+
+\begin{table}[htb]
+	\begin{center}
+		\begin{tabular}{|c|c|c|}
+			\hline
+			Algorithm & Edges & Loss function \\
+			\hline
+			t-SNE & $(i, j)$ pairs & $\sum_{i\neq j} p_{ij} \log{\frac{p_{ij}}{q_{ij}}}$ \\
+			\hline
+			&& 
+			$\bar{w}_{i,j}\log \left( z(\mathbf{y}_i, \mathbf{y}_j) \right)^{-1}, (i,j) \in G$  \\
+			UMAP& $(i, j)$ pairs & $\left(1-\bar{w}_{i,j}\right)\log \left( 1 - z(\mathbf{y}_i, \mathbf{y}_j) \right)^{-1}, (i,j) \notin G$ \\
+			&& $z(\mathbf{y}_i, \mathbf{y}_j) = 1+a\left(\|\mathbf{y}_i-\mathbf{y}_j\|_2^{2}\right)^b $ \\
+			\hline
+			TriMAP & $(i, j, k)$ triplets & 
+			$\omega_{i,j,k}\frac{s(\mathbf{y}_i,\mathbf{y}_k)}{s(\mathbf{y}_i,\mathbf{y}_j)+s(\mathbf{y}_i,\mathbf{y}_k)}$ \\
+			\hline
+			PaCMAP & $(i, j)$ pairs & 
+			$w_{NB}\cdot\sum_{(i,j) \in \textrm{NB}}\frac{\tilde{d}_{ij}}{10 + \tilde{d}_{ij}}$ \\
+			&& $+ w_{MN}\cdot\sum_{(i,k) \in \text{MN}}\frac{\tilde{d}_{ik}}{10000 + \tilde{d}_{ik}}+ w_{FP}\cdot\sum_{(i,l) \in \text{FP}}\frac{1}{1 + \tilde{d}_{il}}$ \\
+			\hline
+		\end{tabular}
+		\caption{Comparison of graph based methods with structure of edges and loss function used in optimizing lower dimensional graph.}
+		\label{tab:graph}
+	\end{center}
+\end{table}
+
+With the exception of PCA, all discussed methods can be interpreted as algorithms that work on weighted graphs, with nodes being observations and edges consisting of some similarity metric over the space of data points seen in table (\ref{tab:graph}). These algorithms work by constructing a low dimensional graph and then optimizing it to fit the original structure of the dataset.
+
+As can be seen on figure (\ref{fig:Mammoth}), the effect of each graph-based dimension reduction algorithm is different on a given dataset. The quality of embedded space is very dependant on the hyperparameters chosen. The importance of effective parametrization is key in making a good embedding. 
+
+\begin{figure}[ht]
+	\begin{center}
+		\includegraphics[width=0.95\columnwidth]{figures/Mammoth_21_3}
+		\caption{Application of t-SNE, LargeVis, UMAP, TriMAP and PaCMAP to the Mammoth dataset, with their most important parameters shown. The preservation of local versus global structure is clear from looking at small details (such as the toes and tail of the mammoth) and the overall shape of the embedding.}
+		\label{fig:Mammoth}
+	\end{center}
+\end{figure}
