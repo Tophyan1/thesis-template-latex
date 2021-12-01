@@ -1,3 +1,21 @@
 %----------------------------------------------------------------------------
 \chapter{Own work}\label{ch:own-work}
 %----------------------------------------------------------------------------
+
+In this chapter, I will describe my work, from the specification of the task through the testing process to the results. The structuring of the experiments will mostly follow a chronological timeline, with the most basic questions answered first.
+
+\section{Defining the objective}
+
+The first problem I encountered during my work was that there is no clear definition of what a good embedding is. No simple metric exists that accurately and fully captures the nuances of embedding a latent chemical space in lower dimension. This is not surprising, since the very existence of so many different dimension algorithms comes from the fact that there is no consensus on that a good dimension reduction algorithm does. As such, I needed to define my own metrics for ranking each embedding. For this, I turned to the underlying goal of embedding these molecules.
+
+The main objective of my thesis is exploring the capability of the previously described dimension reduction algorithms in novel drug discovery. Some assumptions must be made for formalizing the requirements. The first such assumption is that molecules that have similar a structure also have similar chemical properties. While this statement is not true for all chemical descriptors, it holds for most non-categorical metrics, such as number of rings in the molecule, or the topological polar surface area (TPSA \cite{bib:tpsa}). This intuition implies that molecules with similar structure have similar binding properties to certain proteins too, which is the most vital metric for novel drug research. Drug molecules act by binding to proteins, forming complexes that induce physiological changes in the body. The efficacy of binding depends on the chemical properties of the target protein (mainly its three dimensional shape) and the chemical properties of the drug molecule.
+
+From this, it logically follows that a chemical space that is ordered over the chemical structure of molecules allows the targeted search of potential drug candidates. Unfortunately, chemical structure can not be quantized in such a way as to be able to order them. Instead, I decided that what I needed was a space that \textit{smooth} over chemical structure. In essence, this means that points close to each other have similar chemical structure. This is the exact property that is needed for targeted search. Importantly, this does not imply that points far away from each other have significantly different structure. Optimizing for embedding all similar molecules closely is a difficult task, and I can not be sure that points in the original 64-dimensional dataset even satisfies this condition. An algorithm that places all similarly structured molecules close together is advantageous, but for my purposes, not needed.
+
+In summary, a good embedding is one that is locally smooth over chemical structure. This can most easily be determined by looking at chemical descriptors of molecules, and assessing their local smoothness in the output space.
+
+The choice of descriptors matters greatly in this question. The original model was trained on millions of molecules, and some of their chemical properties. The properties used by the VAE's property predictor was part of the database, which means that the 64-dimensional latent space should in theory be relatively smooth over those metrics. Because of this, the inclusion of other chemical descriptors are needed for a proper examination of data. With mostly smooth transitions on a large number of descriptors, one can be certain that the chemical structure itself changes smoothly. 
+
+
+
+
