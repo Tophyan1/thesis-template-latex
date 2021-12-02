@@ -4,7 +4,7 @@
 
 In this chapter, I will describe my work, from the specification of the task through the testing process to the results. The structuring of the experiments will mostly follow a chronological timeline, with the most basic questions answered first.
 
-\section{Defining the objective}
+\section{Defining the objective}\label{sec:defining-the-objective}
 
 The first problem I encountered during my work was that there is no clear definition of what a good embedding is. No simple metric exists that accurately and fully captures the nuances of embedding a latent chemical space in lower dimension. This is not surprising, since the very existence of so many different dimension algorithms comes from the fact that there is no consensus on that a good dimension reduction algorithm does. As such, I needed to define my own metrics for ranking each embedding. For this, I turned to the underlying goal of embedding these molecules.
 
@@ -16,6 +16,53 @@ In summary, a good embedding is one that is locally smooth over chemical structu
 
 The choice of descriptors matters greatly in this question. The original model was trained on millions of molecules, and some of their chemical properties. The properties used by the VAE's property predictor was part of the database, which means that the 64-dimensional latent space should in theory be relatively smooth over those metrics. Because of this, the inclusion of other chemical descriptors are needed for a proper examination of data. With mostly smooth transitions on a large number of descriptors, one can be certain that the chemical structure itself changes smoothly. 
 
+
+\begin{itemize}
+	\item t-SNE parameter sweep
+	\item UMAP sweep
+	\item TriMAP sweep
+	\item PaCMAP sweep?
+	\item LERP - coxib
+	\item LERP - random
+\end{itemize}
+
+\section{Initial testing}\label{sec:initial-testing}
+
+After defining the objective, the first thing that I did was running each algorithm with default parametrization to see baseline results. This served two purposes. Firstly, by generating baseline embeddings, the effect of different parametrization could be more accurately assessed. Secondly, I recorded the runtime of each algorithm, so their performance could be compared from a different angle.
+
+After running each algorithm once, I noticed that the t-SNE clustering was somewhat strange. The result of this run did not make much sense. It was completely different from what I expected. I had prior experience using t-SNE, albeit another implementation. After rerunning the algorithm, I found a similar result, which led me to believe that the implementation had some bug. Indeed, when I ran t-SNE again in verbose mode, I found that instead of the 2000 iterations specified, it only ran for about 150, which was not enough to form proper clusters. I tried switching to openTSNE, the implementation I used heavily during my project laboratory, however, the sheer size of the dataset made it unusable as the system did not have enough memory to accommodate its needs. 
+
+After some consideration, I turned to tsnecuda, another familiar implementation that ran on the GPU (and as such, used its own memory instead of the RAM of the system). I initially chose openTSNE for two reasons: firstly, it was more usable that tsnecuda, as it was far more parametrizable, allowing for custom callback functions and deterministic runs. Secondly, all other algorithm ran on the CPU, making performance comparisons more fair with openTSNE. Since openTSNE could not even complete one run, I was forced to use tsnecuda. This switch however highlighted something very interesting.
+
+In the field of deep learning, GPU's are widely used as they are capable of running thousands of operations in parallel, leading to faster training of models. All graph-based clustering algorithms work very similarly to a neural network, in that they exclusively work with matrices and are highly parallelizable. This means that using GPU resources can significantly speed up the clustering of any given dataset. As can be seen on table (\ref{tab:runtime}), while the sklearn t-SNE implementation took almost exactly 25 hours to run for 150 iterations (plus constructing the higher dimensional probability distribution), tsnecuda did not even take six minutes to perform 5000 iterations (in fact, in the first run, I set it to only 2000 iterations, which ran for 102 seconds, an incredible 883 times faster).
+
+\begin{table}[htb]
+	\begin{center}
+		\begin{tabular}{|l|r|}
+			\hline
+			Algorithm (iterations) & runtime \\
+			\hline
+			PCA & 19.45 s \\
+			\hline
+			t-SNE (sklearn, 150) & 90 042 s \\
+			\hline
+			t-SNE (tsnecuda, 5000) & 344.29 s \\
+			\hline
+			UMAP (1000 epochs) & 5 866.55 s \\
+			\hline
+			TriMAP (2000) & 26 756.64 s \\
+			\hline
+			PaCMAP (2000) & 65 283.52 s \\
+			\hline
+		\end{tabular}
+	\end{center}
+	\caption{Runtimes of each algorithm tested on the entire dataset (without duplicates, ~1.6 million molecules) given in seconds. The number of iterations and epochs are indicated where applicable. PCA, the only non-iterative method is the fastest, while the others take significantly more time. The power of GPU usage is clearly demonstrated by the two t-SNE implementations.}
+	\label{tab:runtime}
+\end{table}
+
+Comparison of each algorithm based on the runtimes in table (\ref{tab:runtime}) should only be done in context. PCA is the fastest method of the bunch, this is because it is the only non-iterative algorithm. After that, the GPU implementation of t-SNE is the fastest, but this can not be credited to the algorithm, but the implementation instead. In fact, the slowest running algorithm is also a t-SNE implementation, which ran on the CPU. As for the other graph-based algorithms, they are not equal either. UMAP has multithreaded capabilities, while TriMAP and PaCMAP do not. 
+
+In summary, these runtime metrics are not intrinsic properties of the algorithms. They merely describe the performance of the current implementations. In time, more libraries will be available for every algorithm and these numbers will change. t-SNE and UMAP both have GPU implementations which vastly outperform their CPU implementations, and even other algorithms that are supposed to be faster than them. In an engineering application, it is important to consider technical parameters, it should be noted that these parameters change as opposed to each algorithm's performance in term of the quality of the embedding. 
 
 
 
