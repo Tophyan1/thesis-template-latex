@@ -92,5 +92,78 @@ It should be noted that some of these descriptors do jump slightly from molecule
 
 
 
+\subsection{t-SNE}
+
+\begin{itemize}
+	\item GD parameters similar in all algorithms
+	\item Perplexity has little effect on result
+\end{itemize}
+
+\begin{figure}[!h]
+	\centering
+	\includegraphics[scale=0.1]{figures/qed20iter}
+	\includegraphics[scale=0.1]{figures/qed50iter}
+	\includegraphics[scale=0.1]{figures/qed200iter}
+	\includegraphics[scale=0.1]{figures/qed500iter}
+	\includegraphics[scale=0.1]{figures/qed1000iter}
+	\caption{Result of the same t-SNE run after 20, 50, 200, 500 and 1000 iterations. The initial closeness of points comes from early exaggeration during gradient descent. It can be clearly seen that initial iterations change the embedding significantly, while later iterations only have minor effects.}
+	\label{fig:tsne:iter_sweep}
+\end{figure}
+
+
+\begin{figure}[!h]
+	\centering
+	\includegraphics[width=0.3\columnwidth]{figures/tsne_qed50perpl}
+	\includegraphics[width=0.3\columnwidth]{figures/tsne_qed450perpl}
+	\includegraphics[width=0.3\columnwidth]{figures/tsne_qed700perpl}
+	\caption{Effect of perplexity on t-SNE. The values 50, 450 and 700 were used on a subset of the whole database. Even significantly different perplexity values generate similar embeddings.}
+	\label{fig:tsne:perplexity}
+\end{figure}
+
+
+
+\subsection{UMAP}
+
+\begin{itemize}
+	\item min\_dist makes clusters less compact, and clusters more connected
+	\item n\_neighbours shifts focus from local to global, relatively small effect
+\end{itemize}
+
+\subsection{TriMAP}
+
+\begin{itemize}
+	\item n\_inliers are the most important parameter
+	\item very small effect on actual embedding
+\end{itemize}
+
+\subsection{PaCMAP}
+
+\begin{itemize}
+	\item most important parameter is FP\_ratio
+	\item it forces PaCMAP to preserve local structure
+	\item very significant effect on result
+	\item time of embedding is very dependant on this parameter
+\end{itemize}
+
+\begin{itemize}
+	\item UMAP and PaCMAP improved most
+	\item PaCMAP has most potential for good embedding, UMAP closely follows
+\end{itemize}
+
 \section{Linear interpolation test}\label{sec:linear-interpolation-test}
 
+\begin{itemize}
+	\item important for targeted search
+	\item between similar molecules and random ones
+	\item only 100 points to not screw up embedding
+	\item optimally a line is drawn  between ends
+	\item PCA made straight line, not surprising
+	\item t-SNE split points into two clusters
+	\item UMAP traced the path between them
+	\item also has hun where they aren't so far away
+	\item TriMAP places new points very far away
+	\item PaCMAP makes proper line
+	\item with random points, it splits points into two clusters
+	\item also has run where they are in one cluster
+	\item UMAP has most promising results
+\end{itemize}
