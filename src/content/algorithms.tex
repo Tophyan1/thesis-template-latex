@@ -2,7 +2,7 @@
 \chapter{Dimension reduction algorithms}\label{ch:dimension-reduction-algorithms}
 %----------------------------------------------------------------------------
 
-For completeness, this chapter contains the theoretical background of PCA, t-SNE, UMAP, TriMAP and PaCMAP in common notation. After introducing every algorithm, their advantages and disadvantages are listed. At the end of the chapter, I compare these algorithms on a theoretical basis without my results working on the dataset detailed in \ref{sec:used-data}.
+For completeness, this chapter contains the theoretical background of PCA, t-SNE, UMAP, TriMAP and PaCMAP in common notation. After introducing every algorithm, their advantages and disadvantages are listed. At the end of the chapter, I compare these algorithms on a theoretical basis without my results working on the dataset detailed in~\ref{sec:used-data}.
 
 $\mathbf{X} \in \mathbb{R}^{N\times M}$ is used to denote the original dataset, for which an embedding $\mathbf{Y} \in \mathbb{R}^{N\times K}$ is constructed. For each observation $i \in [N]$, $\mathbf{x}_i$ and $\mathbf{y}_i$ is used to denote its corresponding representation in $\mathbf{X}$ and $\mathbf{Y}$ respectively. $\mathbf{x}_i$ is a given value and $\mathbf{y}_i$ is a $K$-dimensional decision variable. The distance between $\mathbf{x}_i$ and $\mathbf{x}_j$, which is used as a measure of similarity between the points is denoted by $d(\mathbf{x}_i, \mathbf{x}_j)$. This distance metric may be defined differently between methods, but it is always a metric in $\mathbb{R}^{K}$.
 
@@ -48,7 +48,7 @@ The projected dataset is given by the following linear transformation:
 
 The popularity of PCA lies in its ease of use. It is easily accessible for data science use-cases, with a variety of implementations in a number of environments.
 
-The application of PCA on a given dataset is trivial. The only parameter of the algorithm is the output dimension, and the result is a deterministic function of the dataset.\footnote{In practice this is not entirely true, since the search for $\mathbf{w}_{(i)}$ given by equation \eqref{eq:pca:w1} cannot be implemented without some error.} This means that using PCA does not involve fine-tuning hyper-parameters, which can take a long time and takes away the focus from understanding the underlying data.
+The application of PCA on a given dataset is trivial. The only parameter of the algorithm is the output dimension, and the result is a deterministic function of the dataset.\footnote{In practice this is not entirely true, since the search for $\mathbf{w}_{(i)}$ given by equation~\eqref{eq:pca:w1} cannot be implemented without some error.} This means that using PCA does not involve fine-tuning hyper-parameters, which can take a long time and takes away the focus from understanding the underlying data.
 
 Furthermore, the PCA algorithm is simple, without any computationally expensive steps. This results in an algorithm that uses minimal hardware resources. Even working with large datasets, no supercomputer is needed for the application of principal component analysis.
 
@@ -118,9 +118,9 @@ The \textit{Kullback-Leibler divergence} (KL-divergence)\cite{bib:kldiv} of the 
  	\mathrm{KL} \left(P \parallel Q \right) = \sum_{i\neq j} p_{ij} \log{\frac{p_{ij}}{q_{ij}}}
 \end{equation}
 
-According to the original paper \cite{bib:tsne}, the output matrix $Y$ is initialized using the multivariate Normal distribution  $\mathcal{N}(0,10^{-4}I)$, where $I$ denotes the $K$-dimensional identity matrix, and $K$ is the dimension of the output of t-SNE. In practice however, different initializations are utilised. One popular initialization is PCA, as it efficiently explores linear correlations between features of data.
+According to the original paper~\cite{bib:tsne}, the output matrix $Y$ is initialized using the multivariate Normal distribution  $\mathcal{N}(0,10^{-4}I)$, where $I$ denotes the $K$-dimensional identity matrix, and $K$ is the dimension of the output of t-SNE. In practice however, different initializations are utilised. One popular initialization is PCA, as it efficiently explores linear correlations between features of data.
 
-The final locations of the points $\mathrm{y}_i$ in the map are determined by minimising the Kullback-Leibler divergence of the probability distributions with respect to the points $\mathrm{y}_i$. This minimization is performed by gradient descent \cite{bib:gd}. The result of this optimization is a map that reflects the similarities between the high-dimensional inputs.
+The final locations of the points $\mathrm{y}_i$ in the map are determined by minimising the Kullback-Leibler divergence of the probability distributions with respect to the points $\mathrm{y}_i$. This minimization is performed by gradient descent~\cite{bib:gd}. The result of this optimization is a map that reflects the similarities between the high-dimensional inputs.
 
 \subsection{Advantages over PCA}
 
@@ -132,7 +132,7 @@ The algorithm has many hyperparameters, such as perplexity, and all parameters o
 
 \subsection{Disadvantages}
 
-The greatest drawback of using t-SNE lies in its extensive time and computation requirement. This is due in part to gradient descent, but the main reason for it is the use of computationally intensive operations, which will be detailed in section \ref{sec:umap}. t-SNE does not scale well for larger datasets for this reason. Attempts to speed it up with \textit{FItSNE}\cite{bib:tsne:FItSNE} lead to large memory consumption, making it impossible to do analysis outside of computer clusters. On large datasets, using t-SNE requires powerful computers with large amounts of RAM and strong processors, or even GPU resources to be able to embed data points to a lower dimensional representation in sensible time.
+The greatest drawback of using t-SNE lies in its extensive time and computation requirement. This is due in part to gradient descent, but the main reason for it is the use of computationally intensive operations, which will be detailed in section~\ref{sec:umap}. t-SNE does not scale well for larger datasets for this reason. Attempts to speed it up with \textit{FItSNE}\cite{bib:tsne:FItSNE} lead to large memory consumption, making it impossible to do analysis outside of computer clusters. On large datasets, using t-SNE requires powerful computers with large amounts of RAM and strong processors, or even GPU resources to be able to embed data points to a lower dimensional representation in sensible time.
 
 Another disadvantage of using t-SNE -- which is not uniquely a property of t-SNE -- is the time investment of finding optimal hyperparameters. Particularly unfit parameters result in an embedding where clusters do not even form, and points of data translate to be randomly placed in the output space.\cite{bib:distill}
 
@@ -144,7 +144,7 @@ t-SNE can practically only embed into two or three dimensions, which means it is
 
 \textit{Uniform Manifold Approximation and Projection}\cite{bib:umap}, or UMAP for short is a dimension reduction algorithm developed by Leland McInnes, John Healy and James Melville in 2018. It is constructed from a theoretical framework based in Riemannian geometry and algebraic topology. This technique was developed to overcome the shortcomings of t-SNE. The result is an algorithm that is competitive with t-SNE for visualization quality, arguably preserves more global structure and has superior run time performance. UMAP also has no restrictions on embedding dimension, making it suitable for general dimension reduction use cases.
 
-The theoretical description of UMAP works in terms of \textit{fuzzy simplicial sets}, which are higher-dimensional generalizations of directed graphs, partially ordered sets and categories. Indeed, from a practical computational perspective, UMAP can ultimately be described in terms of, construction of, and operations on, weighted graphs. This puts UMAP in the class of k-neighbour based graph learning algorithms such as Laplacian Eigenmaps \cite{bib:laplacian_eigenmaps}, Isomap \cite{bib:isomap}, or t-SNE.
+The theoretical description of UMAP works in terms of \textit{fuzzy simplicial sets}, which are higher-dimensional generalizations of directed graphs, partially ordered sets and categories. Indeed, from a practical computational perspective, UMAP can ultimately be described in terms of, construction of, and operations on, weighted graphs. This puts UMAP in the class of k-neighbour based graph learning algorithms such as Laplacian Eigenmaps~\cite{bib:laplacian_eigenmaps}, Isomap~\cite{bib:isomap}, or t-SNE\@.
 
 The theoretical description of the algorithm uses a few basic assumptions. For completeness, these are:
 
@@ -178,7 +178,7 @@ or in a slightly different form:
 	k=2^{\sum_{j=1}^{k}\exp\left({\frac{-\max\{0,d(\mathbf{x}_i, \mathbf{x}_j)-\rho_i\}}{\sigma_i}}\right)}.
 \end{equation}
 
-This computation is the counterpart of equation \eqref{eq:tsne:perlexity} of t-SNE. Note that this equation does not contain a $\log_2$ component, which is computationally expensive, resulting in the computation of $\sigma_i$ being faster in the UMAP algorithm.
+This computation is the counterpart of equation~\eqref{eq:tsne:perlexity} of t-SNE. Note that this equation does not contain a $\log_2$ component, which is computationally expensive, resulting in the computation of $\sigma_i$ being faster in the UMAP algorithm.
 
 The weight function is defined between $\mathbf{x}_i$ and $\mathbf{x}_j$:
 
@@ -216,13 +216,13 @@ while for every edge $(i, k)$  that is not in $G$, the following repulsive force
 
 where $\epsilon$ is a small positive constant, to prevent division by zero.
 
-The hyperparameters $a$ and $b$ are tuned using the data by fitting the function $\left(1+a\left(\|\mathbf{y}_i-\mathbf{y}_j\|_2^{2}\right)^b\right)^{-1}$ to the non-normalized weight function $\exp\left({-\max\{0,d(\mathbf{x}_i, \mathbf{x}_j)-\rho_i\}}\right)$ with the goal of creating a smooth approximation. The hyperparameter $\alpha$ indicates the learning rate. This family of curves is similar to Student's t-distribution used by t-SNE \eqref{eq:tsne:qij}, but without integration in the denominator. This speeds up the calculation.
+The hyperparameters $a$ and $b$ are tuned using the data by fitting the function $\left(1+a\left(\|\mathbf{y}_i-\mathbf{y}_j\|_2^{2}\right)^b\right)^{-1}$ to the non-normalized weight function $\exp\left({-\max\{0,d(\mathbf{x}_i, \mathbf{x}_j)-\rho_i\}}\right)$ with the goal of creating a smooth approximation. The hyperparameter $\alpha$ indicates the learning rate. This family of curves is similar to Student's t-distribution used by t-SNE~\eqref{eq:tsne:qij}, but without integration in the denominator. This speeds up the calculation.
 
-The last major difference between the t-SNE algorithm and UMAP is that while the former uses regular gradient descent \cite{bib:gd}, UMAP uses stochastic gradient descent \cite{bib:sgd}. This both speeds up the computations and consumes less memory.
+The last major difference between the t-SNE algorithm and UMAP is that while the former uses regular gradient descent~\cite{bib:gd}, UMAP uses stochastic gradient descent~\cite{bib:sgd}. This both speeds up the computations and consumes less memory.
 
 \subsection{Advantages}
 
-UMAP has quite a few advantages over PCA and t-SNE. As a nonlinear dimension reduction algorithm, UMAP is able to discover nonlinear correlations in the dataset, just like t-SNE. However, while practical application of t-SNE is only feasible in two or three dimensions due to tree-based algorithms for nearest neighbour search such as Barnes-Hut simulation \cite{bib:barnes-hut}, UMAP has no such limitations, making it useful for general dimension reduction use-cases.
+UMAP has quite a few advantages over PCA and t-SNE. As a nonlinear dimension reduction algorithm, UMAP is able to discover nonlinear correlations in the dataset, just like t-SNE. However, while practical application of t-SNE is only feasible in two or three dimensions due to tree-based algorithms for nearest neighbour search such as Barnes-Hut simulation~\cite{bib:barnes-hut}, UMAP has no such limitations, making it useful for general dimension reduction use-cases.
 
 While UMAP also has many hyperparameters, these are more intuitive than that of t-SNE. Specifically, the perplexity parameter of t-SNE is only indirectly affecting $\sigma_i$, while UMAP's \texttt{n\_neighbour} parameter has a direct effect on $\sigma_i$. This means that users can more intuitively tune the algorithm for their use-cases.
 
@@ -240,13 +240,13 @@ The computational representation of $k$-nearest neighbour search builds a matrix
 
 \section{TriMAP}\label{sec:trimap}
 
-Both t-SNE and UMAP are considered near-sighted algorithms, meaning they preserve only local structure as opposed to global structure. While PCA is designed to preserve global structure, it suffers from limitations of nonlinear correlations. TriMAP \cite{bib:trimap} is a graph-based nonlinear dimension reduction algorithm that aims to improve global structure preservation by using triplets of data points instead of pairs.
+Both t-SNE and UMAP are considered near-sighted algorithms, meaning they preserve only local structure as opposed to global structure. While PCA is designed to preserve global structure, it suffers from limitations of nonlinear correlations. TriMAP~\cite{bib:trimap} is a graph-based nonlinear dimension reduction algorithm that aims to improve global structure preservation by using triplets of data points instead of pairs.
 
 
 
 \subsection{Algorithm}
 
-The algorithm defines triplets $(i, j, k)$ such that $d(\mathbf{x}_i, \mathbf{x}_j) < d(\mathbf{x}_i, \mathbf{x}_k)$. A subset of all triplets $\mathcal{T} := \left\lbrace (i,j,k) \right\rbrace$ is used to approximate the structure of the dataset.
+The algorithm defines triplets $(i, j, k)$ such that $d(\mathbf{x}_i, \mathbf{x}_j) < d(\mathbf{x}_i, \mathbf{x}_k)$. A subset of all triplets $\mathcal{T} \coloneqq \left\lbrace (i,j,k) \right\rbrace$ is used to approximate the structure of the dataset.
 
 $\mathcal{T}$ is constructed in the following way:
 
@@ -304,7 +304,7 @@ TriMAP intuitively tries to find a representation of data that preserves the ord
 
 The main benefit of TriMAP is the preservation of the global structure of the dataset. While t-SNE and to some extent UMAP struggles to find an embedding that faithfully captures global structure of the input, TriMAP can find such an embedding with little difficulties.
 
-The loss function of TriMAP uses very computationally inexpensive operations, which in theory make the algorithm faster than even UMAP. This theoretical advantage is entirely negated by the implementations available. UMAP has both a multi-threaded and GPU implementation, while TriMAP only has one single threaded implementation as of writing this paper. 
+The loss function of TriMAP uses very computationally inexpensive operations, which in theory make the algorithm faster than even UMAP. This theoretical advantage is entirely negated by the implementations available. UMAP has both a multithreaded and GPU implementation, while TriMAP only has one single threaded implementation as of writing this paper.
 
 \subsection{Drawbacks}
 
@@ -314,16 +314,16 @@ The main hyperparameters of the algorithm should control the focus on global ver
 
 \section{PaCMAP}\label{sec:pacmap}
 
-\textit{Pairwise Controlled Manifold Approximation Projection}, or PaCMAP \cite{bib:pacmap} for short is the newest dimension reduction algorithm out of the examined ones. It was designed in 2020 by studying the previous three algorithms, uncovering a common interpretation of all of them being graph-based algorithms with nodes being observations and edges constituting a similarity metric between these observations. With this insight, the writers define a set of principles of a good dimension reduction algorithm. They investigate the choice of loss function, the initialization and the algorithm's robustness to initialization. They also investigate the optimization of lower dimensional representation to be able to capture both local and global structure.
+\textit{Pairwise Controlled Manifold Approximation Projection}, or PaCMAP~\cite{bib:pacmap} for short is the newest dimension reduction algorithm out of the examined ones. It was designed in 2020 by studying the previous three algorithms, uncovering a common interpretation of all of them being graph-based algorithms with nodes being observations and edges constituting a similarity metric between these observations. With this insight, the writers define a set of principles of a good dimension reduction algorithm. They investigate the choice of loss function, the initialization and the algorithm's robustness to initialization. They also investigate the optimization of lower dimensional representation to be able to capture both local and global structure.
 
 The outcome of this investigation is the algorithm called PaCMAP, which satisfies all principles set by the authors. 
 
 \subsection{Algorithm}
 
-Similarly to t-SNE and UMAP, PaCMAP uses pairs of observations to approximate the topology of the dataset. These pair are sorted into three distinct groups:
+Similarly to t-SNE and UMAP, PaCMAP uses pairs of observations to approximate the topology of the dataset. These pairs are sorted into three distinct groups:
 
 \begin{itemize}
-	\item Near pairs: Pair $i$ with its nearest $n_{NB}$ neighbours defined by the scaled distance $d^{2,\textrm{select}}_{ij}$. This distance is defined in equation \eqref{eq:pacmap:dselect}. Algorithmically, this selection comes from first performing a $k$-nearest neighbour search on the dataset with $k = n_{NB} + 50$ and then selecting the subset of this where the scaled distance is lowest. 
+	\item Near pairs: Pair $i$ with its nearest $n_{NB}$ neighbours defined by the scaled distance $d^{2,\textrm{select}}_{ij}$. This distance is defined in equation~\eqref{eq:pacmap:dselect}. Algorithmically, this selection comes from first performing a $k$-nearest neighbour search on the dataset with $k = n_{NB} + 50$ and then selecting the subset of this where the scaled distance is lowest.
 	\item Mid-near pairs: For every observation $i$, six other points from the dataset is sampled. The second closest one id paired with $i$. The number of mid-near pairs is proportional to the number of near pairs, and their ratio is a hyperparameter of the algorithm. $n_{MN} = \lfloor n_{NB} \times MN\_ratio\rfloor$
 	\item Further pairs: These are constructed by sampling non-neighbours. The number os such pairs is $n_{FP} = \lfloor n_{NB} \times FP\_ratio \rfloor$
 \end{itemize}
@@ -335,7 +335,7 @@ The scaled distance metric is defined as
 	d^{2,\textrm{select}}_{i,j}=\frac{\|\mathbf{x}_{i}-\mathbf{x}_{j}\|^2}{\sigma_i \sigma_j},
 \end{equation}
 
-where $\sigma_i$ is the average distance between observation $i$ and its Euclidean nearest fourth to sixth neighbours. These values are not computed for every observation, since only a subset of them are used in the algorithm. This equation is very similar to TriMAP's formula for calculating square distance between pairs in equation \eqref{eq:trimap:d2}. 
+where $\sigma_i$ is the average distance between observation $i$ and its Euclidean nearest fourth to sixth neighbours. These values are not computed for every observation, since only a subset of them are used in the algorithm. This equation is very similar to TriMAP's formula for calculating square distance between pairs in equation~\eqref{eq:trimap:d2}.
 
 The embedding matrix $\mathbf{Y}$ is initialized by using PCA. In practice, other initializations are permitted by implementations, should the need arise.
 
@@ -394,7 +394,7 @@ In the third phase, for the rest of the iterations, the weights are set to
 
 By reducing the weight of mid-near points to zero and lowering effects of near points, the repulsive force of further points are magnified, to help separate clusters to make borders clearer. This stage has a greater effect on datasets with primarily local structure. 
 
-According to the original paper, gradient descent is used to optimize the embedding. Adam \cite{bib:adam} optimizer is used to regulate this procedure.
+According to the original paper, gradient descent is used to optimize the embedding. Adam~\cite{bib:adam} optimizer is used to regulate this procedure.
 
 \subsection{Strengths}
 
@@ -408,7 +408,7 @@ Similarly to TriMAP, PaCMAP currently does only have one implementation that onl
 
 \section{Theoretical comparison of algorithms}
 
-We have seen that the different algorithms were designed with different goals in mind. While one algorithm aims to reduce the numbers of dimensions with retaining as much of the variance of the original dataset, another makes effort to faithfully preserve the local and global structure of its observations. For selecting the best algorithm for a certain use-case however, a comprehensive comparison is helpful. In this section, I will compare the different methods, highlighting their similarities and differences. Figures shown in this section come from Yingfang Wang's paper \cite{bib:pacmap}.
+We have seen that the different algorithms were designed with different goals in mind. While one algorithm aims to reduce the numbers of dimensions with retaining as much of the variance of the original dataset, another makes effort to faithfully preserve the local and global structure of its observations. For selecting the best algorithm for a certain use-case however, a comprehensive comparison is helpful. In this section, I will compare the different methods, highlighting their similarities and differences. Figures shown in this section come from Yingfang Wang's paper~\cite{bib:pacmap}.
 
 \begin{table}[htb]
 	\begin{center}
