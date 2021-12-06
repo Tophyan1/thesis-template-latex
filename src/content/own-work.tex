@@ -89,7 +89,7 @@ TriMAP creates objects resembling magnetic field lines. This is very interesting
 
 PaCMAP -- similarly to UMAP -- produces one compact cluster in the middle, with some additional clusters nearby. This behaviour is not ideal for targeted search, since quite different molecules are placed near each other. PaCMAP does offer very much control over its sightedness however, and with different parameters, this can change.
 
-Overall, with default parameters, it initially seems like t-SNE produces the most desirable embedding. This will however change with other parameters, as the values are tuned to represent the dataset faithfully.
+Overall, with default parameters, it initially seems like t-SNE produces the most desirable embedding. TriMAP resulted in the least useful output space out of the graph-based algorithms. This will however change with other parameters, as the values are tuned to represent the dataset faithfully.
 
 \section{Optimizing the parameters}\label{sec:optimizing-the-parameters}
 
@@ -97,33 +97,35 @@ As discussed previously, an advantage of parametrizable algorithms is the fact t
 
 \subsection{t-SNE}
 
-\begin{itemize}
-	\item GD parameters similar in all algorithms
-	\item Perplexity has little effect on result
-\end{itemize}
+There are many common parameters of graph-based algorithms, mainly because of the use of gradient descent. Indeed, the effect of these parameters do not have significantly different effects with other methods. Because of this, I will only present the parameters associated with GD with t-SNE.
+
+The optimization of gradient descent is in and of itself a vast topic worth many books. In fact, many papers have been written on this very topic. The graph-based algorithms all use gradient descent and all have some form of optimization laid out in their respective original papers. For this reason, the only parameter I will show now is the number of iterations. This is one of the most important parameters of gradient descent as too few iterations will inevitably prevent the convergence on a local minimum, while too many iterations needlessly increases the runtime of the algorithm and can even lead to overfitting, the production of an analysis that corresponds too closely or exactly to a particular set of data, and may therefore fail to fit additional data or predict future observations reliably.
 
 \begin{figure}[!h]
 	\centering
-%	\includegraphics[scale=0.1]{figures/qed20iter}
-%	\includegraphics[scale=0.1]{figures/qed50iter}
+	\includegraphics[scale=0.1]{figures/qed20iter}
+	\includegraphics[scale=0.1]{figures/qed50iter}
 	\includegraphics[scale=0.1]{figures/qed200iter}
-%	\includegraphics[scale=0.1]{figures/qed500iter}
-%	\includegraphics[scale=0.1]{figures/qed1000iter}
+	\includegraphics[scale=0.1]{figures/qed500iter}
+	\includegraphics[scale=0.1]{figures/qed1000iter}
 	\caption{Result of the same t-SNE run after 20, 50, 200, 500 and 1000 iterations. The initial closeness of points comes from early exaggeration during gradient descent. It can be clearly seen that initial iterations change the embedding significantly, while later iterations only have minor effects.}
 	\label{fig:tsne:iter_sweep}
 \end{figure}
 
+The effect of n\_iters does not scale linearly. In the initial iterations, the gradient of the error surface tends to be large, meaning that every step has a significant effect on the overall embedding. As the iterations go on however, the output approaches a local minimum, changing less and less every step. This effect is demonstrated by figure (\ref{fig:tsne:iter_sweep}), where in the first few hundred iterations significant change can be seen, while during the last 500 iterations only minor differences arise.
 
-%\begin{figure}[!h]
-%	\centering
-%	\includegraphics[width=0.3\columnwidth]{figures/tsne_qed50perpl}
-%	\includegraphics[width=0.3\columnwidth]{figures/tsne_qed450perpl}
-%	\includegraphics[width=0.3\columnwidth]{figures/tsne_qed700perpl}
-%	\caption{Effect of perplexity on t-SNE. The values 50, 450 and 700 were used on a subset of the whole database. Even significantly different perplexity values generate similar embeddings.}
-%	\label{fig:tsne:perplexity}
-%\end{figure}
+The most important parameter of t-SNE is perplexity. As described in section (\ref{sec:t-sne}), perplexity affects the $\sigma_i$ used in~\eqref{eq:tsne:pi|j}. This parameter is responsible for the focus between local and global structure preservation. This focus shift is rather limited in t-SNE, as figure (\ref{fig:tsne:perplexity}) shows.
 
+\begin{figure}[!h]
+	\centering
+	\includegraphics[width=0.3\columnwidth]{figures/tsne_qed50perpl}
+	\includegraphics[width=0.3\columnwidth]{figures/tsne_qed450perpl}
+	\includegraphics[width=0.3\columnwidth]{figures/tsne_qed700perpl}
+	\caption{Effect of perplexity on t-SNE. The values 50, 450 and 700 were used on a subset ($n = 100000$) of the whole database. Even significantly different perplexity values generate similar embeddings.}
+	\label{fig:tsne:perplexity}
+\end{figure}
 
+It seems like this parameter does not have a large effect on the result. This can be attributed to the fact that perplexity does not directly affect the algorithm, only indirectly. Because of this, using the perplexity parameter does not allow fine control over the resulting embedding. It is possible that even higher, more extreme values of perplexity have more desirable effects, however, the memory consumption of $k$-nearest neighbour search for larger values of $k$ -- which is indirectly being increased with high perplexity -- renders it practically unusable.
 
 \subsection{UMAP}
 
