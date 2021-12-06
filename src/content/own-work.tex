@@ -16,16 +16,6 @@ In summary, a good embedding is one that is locally smooth over chemical structu
 
 The choice of descriptors matters greatly in this question. The original model was trained on millions of molecules, and some of their chemical properties. The properties used by the VAE's property predictor was part of the database, which means that the 64-dimensional latent space should in theory be relatively smooth over those metrics. Because of this, the inclusion of other chemical descriptors are needed for a proper examination of data. With mostly smooth transitions on a large number of descriptors, one can be certain that the chemical structure itself changes smoothly.
 
-
-\begin{itemize}
-	\item t-SNE parameter sweep
-	\item UMAP sweep
-	\item TriMAP sweep
-	\item PaCMAP sweep?
-	\item LERP - coxib
-	\item LERP - random
-\end{itemize}
-
 \section{Initial testing}\label{sec:initial-testing}
 
 After defining the objective, the first thing that I did was running each algorithm with default parametrization to see baseline results. This served two purposes. Firstly, by generating baseline embeddings, the effect of different parametrization could be more accurately assessed. Secondly, I recorded the runtime of each algorithm, so their performance could be compared from a different angle.
@@ -86,11 +76,24 @@ The ideal descriptors are those that do not change very much as the structure of
 
 It should be noted that some of these descriptors do jump slightly from molecule to molecule, however, this change is not too great to cause problems in interpreting data.
 
-\todo{értékítélet}
+
+As can be seen on figure (\ref{fig:default_run}), the different algorithms yielded in substantially different embeddings. This is a direct result of the differences highlighted in table (\ref{tab:graph}). 
+
+PCA produces the smoothest transition. This might seem positive, but in reality, this is not ideal. Chemical descriptors, qed in particular are not monotonous over chemical structure. This means that similar while similar molecules have similar qed values, dissimilar molecules might have the exact same qed. For this reason, a complete gradient is undesirable. This stems from the fact that PCA performs a linear transformation, not allowing for the preservation of such structures.
+
+Another interesting thing is the difference in sklearn t-SNE and tsnecuda (second and third graph respectively). The sklearn implementation did not differentiate dissimilar points into distinct clusters. Investigating this phenomenon lead to the discovery that sklearn's implementation was bugged, only iterating for a mere 150 iteration, which was not enough for separation of different molecules, as can be seen on figure (\ref{fig:tsne:iter_sweep}). t-SNE has the most uniform clustering in terms of density of points among the graph-based algorithms. It should be noted that t-SNE did not use the default perplexity value, as I have found previously that a perplexity parameter of around 1000 produces the most desirable output. 
+
+UMAP clusters the molecules in one big cluster (although not as extremely as PaCMAP), with a few little clusters on the side. This is partly due to the low default min\_dist parameter, making ultra-tightly packed clusters. The space is very much smooth over qed value. 
+
+TriMAP creates objects resembling magnetic field lines. This is very interesting from a structural view. It should be noted however, that it seems like the individual clusters overlap with each other in a way that no other algorithm resembles. For this reason, targeted search would be very difficult on a space created by TriMAP. This particular problem as we will see does not get better with tuning parameters, making TriMAP fundamentally unusable for this use-case.
+
+PaCMAP -- similarly to UMAP -- produces one compact cluster in the middle, with some additional clusters nearby. This behaviour is not ideal for targeted search, since quite different molecules are placed near each other. PaCMAP does offer very much control over its sightedness however, and with different parameters, this can change.
+
+Overall, with default parameters, it initially seems like t-SNE produces the most desirable embedding. This will however change with other parameters, as the values are tuned to represent the dataset faithfully.
 
 \section{Optimizing the parameters}\label{sec:optimizing-the-parameters}
 
-
+As discussed previously, an advantage of parametrizable algorithms is the fact that the user is able to influence the preservation of local or global structure according to their use-case. For optimal results, each algorithm was run multiple times with different parametrization. The choice of parameters to sweep was based on how much effect it had theoretically. 
 
 \subsection{t-SNE}
 
@@ -101,24 +104,24 @@ It should be noted that some of these descriptors do jump slightly from molecule
 
 \begin{figure}[!h]
 	\centering
-	\includegraphics[scale=0.1]{figures/qed20iter}
-	\includegraphics[scale=0.1]{figures/qed50iter}
+%	\includegraphics[scale=0.1]{figures/qed20iter}
+%	\includegraphics[scale=0.1]{figures/qed50iter}
 	\includegraphics[scale=0.1]{figures/qed200iter}
-	\includegraphics[scale=0.1]{figures/qed500iter}
-	\includegraphics[scale=0.1]{figures/qed1000iter}
+%	\includegraphics[scale=0.1]{figures/qed500iter}
+%	\includegraphics[scale=0.1]{figures/qed1000iter}
 	\caption{Result of the same t-SNE run after 20, 50, 200, 500 and 1000 iterations. The initial closeness of points comes from early exaggeration during gradient descent. It can be clearly seen that initial iterations change the embedding significantly, while later iterations only have minor effects.}
 	\label{fig:tsne:iter_sweep}
 \end{figure}
 
 
-\begin{figure}[!h]
-	\centering
-	\includegraphics[width=0.3\columnwidth]{figures/tsne_qed50perpl}
-	\includegraphics[width=0.3\columnwidth]{figures/tsne_qed450perpl}
-	\includegraphics[width=0.3\columnwidth]{figures/tsne_qed700perpl}
-	\caption{Effect of perplexity on t-SNE. The values 50, 450 and 700 were used on a subset of the whole database. Even significantly different perplexity values generate similar embeddings.}
-	\label{fig:tsne:perplexity}
-\end{figure}
+%\begin{figure}[!h]
+%	\centering
+%	\includegraphics[width=0.3\columnwidth]{figures/tsne_qed50perpl}
+%	\includegraphics[width=0.3\columnwidth]{figures/tsne_qed450perpl}
+%	\includegraphics[width=0.3\columnwidth]{figures/tsne_qed700perpl}
+%	\caption{Effect of perplexity on t-SNE. The values 50, 450 and 700 were used on a subset of the whole database. Even significantly different perplexity values generate similar embeddings.}
+%	\label{fig:tsne:perplexity}
+%\end{figure}
 
 
 
@@ -160,7 +163,7 @@ It should be noted that some of these descriptors do jump slightly from molecule
 	\item PCA made straight line, not surprising
 	\item t-SNE split points into two clusters
 	\item UMAP traced the path between them
-	\item also has hun where they aren't so far away
+	\item also has run where they aren't so far away
 	\item TriMAP places new points very far away
 	\item PaCMAP makes proper line
 	\item with random points, it splits points into two clusters
