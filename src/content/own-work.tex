@@ -114,7 +114,7 @@ The optimization of gradient descent is in and of itself a vast topic worth many
 
 The effect of n\_iters does not scale linearly. In the initial iterations, the gradient of the error surface tends to be large, meaning that every step has a significant effect on the overall embedding. As the iterations go on however, the output approaches a local minimum, changing less and less every step. This effect is demonstrated by figure (\ref{fig:tsne:iter_sweep}), where in the first few hundred iterations significant change can be seen, while during the last 500 iterations only minor differences arise.
 
-The most important parameter of t-SNE is perplexity. As described in section (\ref{sec:t-sne}), perplexity affects the $\sigma_i$ used in~\eqref{eq:tsne:pi|j}. This parameter is responsible for the focus between local and global structure preservation. This focus shift is rather limited in t-SNE, as figure (\ref{fig:tsne:perplexity}) shows.
+The most important parameter of t-SNE is perplexity. As described in section (\ref{sec:t-sne}), perplexity affects the $\sigma_i$ used in equation~\eqref{eq:tsne:pi|j}. This parameter is responsible for the focus between local and global structure preservation. This focus shift is rather limited in t-SNE, as figure (\ref{fig:tsne:perplexity}) shows.
 
 \begin{figure}[!h]
 	\centering
@@ -129,10 +129,41 @@ It seems like this parameter does not have a large effect on the result. This ca
 
 \subsection{UMAP}
 
-\begin{itemize}
-	\item min\_dist makes clusters less compact, and clusters more connected
-	\item n\_neighbours shifts focus from local to global, relatively small effect
-\end{itemize}
+
+UMAP has two particularly interesting parameters when it comes to the result of the embedding. These are min\_dist and n\_neighbours. The former dictates the minimum distance between points that are in the same cluster, while the latter is the number of nearest neighbours searched for in the initial stage of the algorithm. 
+
+The first parameter, min\_dist has a very drastic effect on the embedding. With low values of min\_dist, clusters there is no penality for placing intra-cluster points very closely, forming  highly compact clusters. This also means that different clusters are separated more clearly. With higher values, even points in the same cluster are placed further apart, making a more uniform distribution of points, that have less cluster separation. This effect is shown on figure (\ref{fig:umap:min_dist}). 
+
+\begin{figure}[!h]
+	\centering
+	\includegraphics[width=0.32\columnwidth]{figures/UMAP0.0}
+	\includegraphics[width=0.32\columnwidth]{figures/UMAP0.1}
+	\includegraphics[width=0.32\columnwidth]{figures/UMAP0.25}
+	\includegraphics[width=0.32\columnwidth]{figures/UMAP0.5}
+	\includegraphics[width=0.32\columnwidth]{figures/UMAP0.75}
+	\includegraphics[width=0.32\columnwidth]{figures/UMAP0.99}
+	\caption{Effect of min\_dist parameter on the embedding produced by UMAP. The values are in order: 0.0, 0.1, 0.25, 0.5, 0.75 and 0.99. As the value increases, so does the space between points in the same cluster, making the whole space more spread out.}
+	\label{fig:umap:min_dist}
+\end{figure}
+
+While the ultra-tight clusters allow more separation of inter-cluster molecules, for the purpose of targeted search, they are undesirable. This is due to the fact that in tightly-packed clusters, sampling must be done very closely to the original point, meaning even small changes in the location of a sampled point can result in very different chemicals. This however can be solved by generating the low min\_dist embedding and scaling every point too. The major drawback of such a procedure is that targeted searching in the scaled space results in scaled points that have to be rescaled for further use. 
+
+While the exact optimum of this parameter is not objectively measurable, according to figure (\ref{fig:umap:min_dist}) a value of around 0.75 seems to be the sweet spot for balance between tightly packed clusters and uniformly placing the molecules. 
+
+The number of nearest neighbours is the parameter of UMAP that shifts the focus from local to global structure. With a larger number of nearest neighbours, a more global structure is approximated in the initial stage of UMAP. This in turn results in the lower dimensional graph being optimized for more global structure preservation. 
+
+\begin{figure}[!h]
+	\centering
+	\includegraphics[width=0.32\columnwidth]{figures/UMAP@0.75@10}
+	\includegraphics[width=0.32\columnwidth]{figures/UMAP@0.75@30}
+	\includegraphics[width=0.32\columnwidth]{figures/UMAP@0.75@50}
+	\includegraphics[width=0.32\columnwidth]{figures/UMAP@0.75@100}
+	\includegraphics[width=0.32\columnwidth]{figures/UMAP@0.75@200}
+	\caption{Effect of n\_neighbours parameter at values of 10, 20, 30, 50, 100, 200 with a min\_dist parameter of 0.75. Higher values result in more compact overall embedding, as more and more points are counted as nearest neighbours. At particularly high values (such as 200), very few distinct clusters are formed and all molecules are placed on top of each other just like with TriMAP.}
+	\label{fig:umap:n_neighbor}
+\end{figure}
+
+As can bee seen on figure (\ref{fig:umap:n_neighbor}), the value of n\_neighbours has a drastic effect when changed from a low value to a slightly higher one, however, at larger values the difference in embedding starts to diminish. One interesting thing that can be seen on is the gradual disappearance of clusters in favour of a uniform blob. For targeted searching, this is potentially bad, since so many molecules are packed into one space. For this reason, very high values are undesirable for this use-case.
 
 \subsection{TriMAP}
 
