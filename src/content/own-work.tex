@@ -22,6 +22,18 @@ After defining the objective, the first thing that I did was running each algori
 
 After running each algorithm once, I noticed that the t-SNE clustering was somewhat strange (as can be seen on figure (\ref{fig:default_run})). The result of this run did not make much sense. It was completely different from what I expected. I had prior experience using t-SNE, albeit another implementation. After rerunning the algorithm, I found a similar result, which led me to believe that the implementation had some bug. Indeed, when I ran t-SNE again in verbose mode, I found that instead of the 2000 iterations specified, it only ran for about 150, which was not enough to form proper clusters. I tried switching to openTSNE, the implementation I used heavily during my project laboratory, however, the sheer size of the dataset made it unusable as the system did not have enough memory to accommodate its needs.
 
+\begin{figure}[!ht]
+	\centering
+	\includegraphics[width=0.49\columnwidth, keepaspectratio]{figures/PCA_default}
+	\includegraphics[width=0.49\columnwidth, keepaspectratio]{figures/t-SNE_default}
+	\includegraphics[width=0.49\columnwidth, keepaspectratio]{figures/t-SNE2_default}
+	\includegraphics[width=0.49\columnwidth, keepaspectratio]{figures/UMAP_default}
+	\includegraphics[width=0.49\columnwidth, keepaspectratio]{figures/TriMAP_default}
+	\includegraphics[width=0.49\columnwidth, keepaspectratio]{figures/PaCMAP_default}
+	\caption{Results of PCA, t-SNE (sklearn and tsnecuda), UMAP, TriMAP and PaCMAP algorithms on the dataset with default parameters, coloured by the quantitative estimate of drug-likeness of each data point. It can be clearly seen that each algorithm places points very differently.}
+	\label{fig:default_run}
+\end{figure}
+
 After some consideration, I turned to tsnecuda, another familiar implementation that ran on the GPU (and as such, used its own memory instead of the RAM of the system). I initially chose openTSNE for two reasons: firstly, it was more usable that tsnecuda, as it was far more parametrizable, allowing for custom callback functions and deterministic runs. Secondly, all other algorithm ran on the CPU, making performance comparisons more fair with openTSNE. Since openTSNE could not even complete one run, I was forced to use tsnecuda. This switch however highlighted something very interesting.
 
 In the field of deep learning, GPU's are widely used as they are capable of running thousands of operations in parallel, leading to faster training of models. All graph-based clustering algorithms work very similarly to a neural network, in that they exclusively work with matrices and are highly parallelizable. This means that using GPU resources can significantly speed up the clustering of any given dataset. As can be seen on table (\ref{tab:runtime}), while the sklearn t-SNE implementation took almost exactly 25 hours to run for 150 iterations (plus constructing the higher dimensional probability distribution), tsnecuda did not even take six minutes to perform 5000 iterations (in fact, in the first run, I set it to only 2000 iterations, which ran for 102 seconds, an incredible 883 times faster).
@@ -60,14 +72,13 @@ I have briefly touched on the importance of chemical descriptors in the inferenc
 
 \begin{figure}[!ht]
 	\centering
-	\includegraphics[width=0.49\columnwidth, keepaspectratio]{figures/PCA_default}
-	\includegraphics[width=0.49\columnwidth, keepaspectratio]{figures/t-SNE_default}
-	\includegraphics[width=0.49\columnwidth, keepaspectratio]{figures/t-SNE2_default}
-	\includegraphics[width=0.49\columnwidth, keepaspectratio]{figures/UMAP_default}
-	\includegraphics[width=0.49\columnwidth, keepaspectratio]{figures/TriMAP_default}
-	\includegraphics[width=0.49\columnwidth, keepaspectratio]{figures/PaCMAP_default}
-	\caption{Results of PCA, t-SNE (sklearn and tsnecuda), UMAP, TriMAP and PaCMAP algorithms on the dataset with default parameters, coloured by the quantitative estimate of drug-likeness of each data point. It can be clearly seen that each algorithm places points very differently.}
-	\label{fig:default_run}
+	\includegraphics[width=0.49\columnwidth]{figures/TPSA_PCA}
+	\includegraphics[width=0.49\columnwidth]{figures/TPSA_t-SNE}
+	\includegraphics[width=0.49\columnwidth]{figures/TPSA_UMAP}
+	\includegraphics[width=0.49\columnwidth]{figures/TPSA_TriMAP}
+	\includegraphics[width=0.49\columnwidth]{figures/TPSA_PaCMAP}
+	\caption{Results of PCA, t-SNE, UMAP, TriMAP and PaCMAP on the latent dataset, coloured by Topological Polar Surface Area (TPSA). This descriptor was not used by the property predictor in the making of the latent representation.}
+	\label{fig:TPSA}
 \end{figure}
 
 The choice of descriptors matter because different metrics relate differently to chemical structure. For example, the melting point of a substance is affected mostly by the secondary bonds it can form. Consider \textit{ethane} and \textit{ethanol}. These two molecules are structurally very similar, only differing by one oxygen atom. This however changes the strongest secondary bond that can form between individual molecules. While solid ethane is bound together only by \textit{van der Waals forces}~\cite{bib:vanderwaals}, solid ethanol is held together by \textit{hydrogen bonds}~\cite{bib:hbond}, many times stronger. As such, while the melting point of ethane is $-182.8~^\circ$C, ethanol melts at $-114.14~^\circ$C. The difference is even more dramatic for boiling points, $-88.5~^\circ$C and $+78.23~^\circ$C for ethane and ethanol respectively.
@@ -75,7 +86,6 @@ The choice of descriptors matter because different metrics relate differently to
 The ideal descriptors are those that do not change very much as the structure of molecules changes a little. In the end, I chose the following metrics: Quantitative estimate of drug-likeness, Ring count, number of hydrogen donors, number of hydrogen acceptors, topological polar surface area~\cite{bib:tpsa} and number of rotatable bonds.
 
 It should be noted that some of these descriptors do jump slightly from molecule to molecule, however, this change is not too great to cause problems in interpreting data.
-
 
 As can be seen on figure (\ref{fig:default_run}), the different algorithms yielded in substantially different embeddings. This is a direct result of the differences highlighted in table (\ref{tab:graph}). 
 
@@ -88,6 +98,8 @@ UMAP clusters the molecules in one big cluster (although not as extremely as PaC
 TriMAP creates objects resembling magnetic field lines. This is very interesting from a structural view. It should be noted however, that it seems like the individual clusters overlap with each other in a way that no other algorithm resembles. For this reason, targeted search would be very difficult on a space created by TriMAP. This particular problem as we will see does not get better with tuning parameters, making TriMAP fundamentally unusable for this use-case.
 
 PaCMAP -- similarly to UMAP -- produces one compact cluster in the middle, with some additional clusters nearby. This behaviour is not ideal for targeted search, since quite different molecules are placed near each other. PaCMAP does offer very much control over its sightedness however, and with different parameters, this can change.
+
+In determining whether the space is smooth over the chemical structure of molecules instead of some descriptors, I investigated the embeddings by colouring the plots according to descriptors that have definitely not been used by the property predictor during the training of the VAE. As can be seen on figure (\ref{fig:TPSA}), colouring by topological polar surface area, It can be stated that the algorithms produce a smooth gradient between high-valued areas and lower-valued areas. This indicates that the space is indeed smooth over the chemical structure. Multiple other descriptors have been tested and they all yielded similar results.
 
 Overall, with default parameters, it initially seems like t-SNE produces the most desirable embedding. TriMAP resulted in the least useful output space out of the graph-based algorithms. This will however change with other parameters, as the values are tuned to represent the dataset faithfully.
 
@@ -103,11 +115,11 @@ The optimization of gradient descent is in and of itself a vast topic worth many
 
 \begin{figure}[!h]
 	\centering
-	\includegraphics[scale=0.1]{figures/qed20iter}
-	\includegraphics[scale=0.1]{figures/qed50iter}
-	\includegraphics[scale=0.1]{figures/qed200iter}
-	\includegraphics[scale=0.1]{figures/qed500iter}
-	\includegraphics[scale=0.1]{figures/qed1000iter}
+	\includegraphics[width=0.45\columnwidth]{figures/qed20iter}
+	\includegraphics[width=0.45\columnwidth]{figures/qed50iter}
+	\includegraphics[width=0.45\columnwidth]{figures/qed200iter}
+	\includegraphics[width=0.45\columnwidth]{figures/qed500iter}
+	\includegraphics[width=0.45\columnwidth]{figures/qed1000iter}
 	\caption{Result of the same t-SNE run after 20, 50, 200, 500 and 1000 iterations. The initial closeness of points comes from early exaggeration during gradient descent. It can be clearly seen that initial iterations change the embedding significantly, while later iterations only have minor effects.}
 	\label{fig:tsne:iter_sweep}
 \end{figure}
@@ -118,9 +130,9 @@ The most important parameter of t-SNE is perplexity. As described in section (\r
 
 \begin{figure}[!h]
 	\centering
-	\includegraphics[width=0.3\columnwidth]{figures/tsne_qed50perpl}
-	\includegraphics[width=0.3\columnwidth]{figures/tsne_qed450perpl}
-	\includegraphics[width=0.3\columnwidth]{figures/tsne_qed700perpl}
+	\includegraphics[width=0.49\columnwidth]{figures/tsne_qed50perpl}
+	\includegraphics[width=0.49\columnwidth]{figures/tsne_qed450perpl}
+	\includegraphics[width=0.49\columnwidth]{figures/tsne_qed700perpl}
 	\caption{Effect of perplexity on t-SNE. The values 50, 450 and 700 were used on a subset ($n = 100000$) of the whole database. Even significantly different perplexity values generate similar embeddings.}
 	\label{fig:tsne:perplexity}
 \end{figure}
@@ -136,12 +148,12 @@ The first parameter, min\_dist has a very drastic effect on the embedding. With 
 
 \begin{figure}[!h]
 	\centering
-	\includegraphics[width=0.32\columnwidth]{figures/UMAP0.0}
-	\includegraphics[width=0.32\columnwidth]{figures/UMAP0.1}
-	\includegraphics[width=0.32\columnwidth]{figures/UMAP0.25}
-	\includegraphics[width=0.32\columnwidth]{figures/UMAP0.5}
-	\includegraphics[width=0.32\columnwidth]{figures/UMAP0.75}
-	\includegraphics[width=0.32\columnwidth]{figures/UMAP0.99}
+	\includegraphics[width=0.49\columnwidth]{figures/UMAP0.0}
+	\includegraphics[width=0.49\columnwidth]{figures/UMAP0.1}
+	\includegraphics[width=0.49\columnwidth]{figures/UMAP0.25}
+	\includegraphics[width=0.49\columnwidth]{figures/UMAP0.5}
+	\includegraphics[width=0.49\columnwidth]{figures/UMAP0.75}
+	\includegraphics[width=0.49\columnwidth]{figures/UMAP0.99}
 	\caption{Effect of min\_dist parameter on the embedding produced by UMAP. The values are in order: 0.0, 0.1, 0.25, 0.5, 0.75 and 0.99. As the value increases, so does the space between points in the same cluster, making the whole space more spread out.}
 	\label{fig:umap:min_dist}
 \end{figure}
@@ -154,12 +166,12 @@ The number of nearest neighbours is the parameter of UMAP that shifts the focus 
 
 \begin{figure}[!h]
 	\centering
-	\includegraphics[width=0.32\columnwidth]{figures/UMAP@0.75@10}
-	\includegraphics[width=0.32\columnwidth]{figures/UMAP@0.75@30}
-	\includegraphics[width=0.32\columnwidth]{figures/UMAP@0.75@50}
-	\includegraphics[width=0.32\columnwidth]{figures/UMAP@0.75@100}
-	\includegraphics[width=0.32\columnwidth]{figures/UMAP@0.75@200}
-	\caption{Effect of n\_neighbours parameter at values of 10, 20, 30, 50, 100, 200 with a min\_dist parameter of 0.75. Higher values result in more compact overall embedding, as more and more points are counted as nearest neighbours. At particularly high values (such as 200), very few distinct clusters are formed and all molecules are placed on top of each other just like with TriMAP.}
+	\includegraphics[width=0.45\columnwidth]{figures/UMAP@0.75@10}
+	\includegraphics[width=0.45\columnwidth]{figures/UMAP@0.75@30}
+	\includegraphics[width=0.45\columnwidth]{figures/UMAP@0.75@50}
+	\includegraphics[width=0.45\columnwidth]{figures/UMAP@0.75@100}
+	\includegraphics[width=0.45\columnwidth]{figures/UMAP@0.75@200}
+	\caption{Effect of n\_neighbours parameter at values of 10, 20, 30, 50, 100 and 200 with a min\_dist parameter of 0.75. Higher values result in more compact overall embedding, as more and more points are counted as nearest neighbours. At particularly high values (such as 200), very few distinct clusters are formed and all molecules are placed on top of each other just like with TriMAP.}
 	\label{fig:umap:n_neighbor}
 \end{figure}
 
@@ -167,27 +179,77 @@ As can bee seen on figure (\ref{fig:umap:n_neighbor}), the value of n\_neighbour
 
 \subsection{TriMAP}
 
-\begin{itemize}
-	\item n\_inliers are the most important parameter
-	\item very small effect on actual embedding
-\end{itemize}
+We have seen in section (\ref{sec:result-of-first-runs}) that TriMAP produced very poor results for allowing targeted search. With this in mind and with the knowledge of locally-focused algorithms have performed much better, The obvious parameter choice is one (or more) that focuses on local structure. Out of the three main hyperparameters (\texttt{n\_inliers}, \texttt{n\_outliers}, \texttt{n\_random}), the most relevant seems to be \texttt{n\_inliers}.
+
+\begin{figure}[!h]
+	\centering
+	\includegraphics[width=0.45\columnwidth]{figures/TriMAPqed@20}
+	\includegraphics[width=0.45\columnwidth]{figures/TriMAPqed@30}
+	\includegraphics[width=0.45\columnwidth]{figures/TriMAPqed@50}
+	\includegraphics[width=0.45\columnwidth]{figures/TriMAPqed@100}
+	\caption{Different values of \texttt{n\_inliers} (20, 30, 50 and 100) on a TriMAP embedding. This parameter did not substantially change the embedding.}
+	\label{fig:trimap:n_inliers}
+\end{figure}
+
+After running TriMAP with a few values of \texttt{n\_inliers}, the results showed very little change in the topology of the embedding (seen in figure (\ref{fig:trimap:n_inliers})). The first thought I had seeing this result was that TriMAP is unable to focus on local structure of the dataset. This was supported by most articles and papers I have read on the subject. 
+
+This meant that TriMAP is just unfit for the use-case of targeted searching in the latent space of drug-like molecules. 
+
+Later on, I realized that the parameter \texttt{n\_inliers} serves a similar role as PaCMAP's near-pair count, influencing mostly global structure preservation. It can be seen on figure (\ref{fig:trimap:n_inliers}) that increasing the parameter significantly does not change the result as much, specifically because TriMAP already focuses on global structure.
+
+Unfortunately, by the time I realized this, I did not have enough time to sweep through other parameters, particularly \texttt{n\_outliers}, which boost the repulsive forces exerted by dissimilar points. In the future, I want to see that parameter's effect on the result, to give TriMAP its chance.
 
 \subsection{PaCMAP}
 
-\begin{itemize}
-	\item most important parameter is FP\_ratio
-	\item it forces PaCMAP to preserve local structure
-	\item very significant effect on result
-	\item time of embedding is very dependent on this parameter
-\end{itemize}
+PaCMAP has four main hyperparameters that change the topology of the resulting embedding. These are the the number of near pairs ($n_{NB}$), the ratio between mid-near pairs and near pairs (MN\_ratio), the ratio between further pairs and near pairs (FP\_ratio) and the initialization of the lower dimensional graph. The original paper~\cite{bib:pacmap} describes the effect of changing each one briefly. 
 
-\begin{itemize}
-	\item UMAP and PaCMAP improved most
-	\item PaCMAP has most potential for good embedding, UMAP closely follows
-\end{itemize}
+The paper showed that PaCMAP is rather robust to the choice of initialization, more so than all other algorithms. For this reason, I decided not to investigate this parameter, as it would have lead to unfruitful optimizing.
+
+The number of near pairs have a significant effect on the final embedding. In general, it can be said that for larger values of $n_{NB}$, PaCMAP preserves more global structure. This is due to the fact that increasing the nearest neighbours increases the attractive forces during optimization, resulting in a less overall detail in the embedding. 
+
+MN\_ratio has very little effect on the overall embedding. Only by having extreme values of it (both extremely small and large), does it affect the result. It is observed that extreme values of MN\_ratio cause problems with both local and global structure. The omission of mid-near points cause the worst result, leading to no structural preservation. In the paper, it is stated that this ratio should be fixed to the default 0.5, for computational and quality reasons.
+
+The effect of FP\_ratio on the resulting embedding is the exact opposite of that of $n_{NB}$. By sampling more further points, the repelling forces increase during optimization, leading to a more locally faithful representation of the original data.
+
+\begin{figure}[!h]
+	\centering
+	\includegraphics[width=0.45\columnwidth]{figures/PaCMAPqed@0.5}
+	\includegraphics[width=0.45\columnwidth]{figures/PaCMAPqed@1}
+	\includegraphics[width=0.45\columnwidth]{figures/PaCMAPqed@3}
+	\includegraphics[width=0.45\columnwidth]{figures/PaCMAPqed@5}
+	\includegraphics[width=0.45\columnwidth]{figures/PaCMAPqed@7}
+	\includegraphics[width=0.45\columnwidth]{figures/PaCMAPqed@10}
+	\caption{PaCMAP embeddings using various FP\_ratio parameters (0.5, 1, 3, 5, 7 and 10). Higher FP\_ratio resulted in more spread out clustering with less similar molecules close together. Tuning this parameter showed the most change out of all tested non-GD parameters.}
+	\label{fig:pacmap:FP_ratio}
+\end{figure}
+
+With this in mind, I decided that the most important parameter to test was FP\_ratio, as it had the most effect on preserving local structure. I used many different values for the parameter, the result of some of which can be seen on figure (\ref{fig:pacmap:FP_ratio}). Clearly this hyperparameter has an immense effect on the result of PaCMAP. With larger values of FP\_ratio, the resulting space became more spread out, with distinct clusters forming. This is ideal for targeted searching, as the individual points are sorted into clusters based on similarity, pushing dissimilar point into other clusters.
+
+It is important to note that this effect is not without drawbacks. As the FP\_ratio parameter increases, so does runtime. This relation is captured on table (\ref{tab:pacmap:runtime}). This is because the subset of data points used by PaCMAP increases as more further points are sampled for each observation.
+
+\begin{table}
+	\begin{center}
+		\begin{tabular}{|c|r|}
+			\hline
+			FP\_ratio & Runtime (s)\\
+			\hline 
+			0.5 & 1:52:43.78 \\
+			\hline
+			7 & 7:14:07.76 \\
+			\hline
+			10 & 9:36:32.74 \\
+			\hline
+		\end{tabular}
+	\end{center}
+	\caption{The runtime of a few runs with different FP\_ratio parameters. There is a clear relation between the value and runtime. One should be careful setting extremely large values of this ratio.}
+	\label{tab:pacmap:runtime}
+\end{table}
 
 \section{Overall results of hyperparameter optimization}\label{sec:overall-results-of-hyperparameter-optimization}
 
+Overall, it can be said that these algorithms behave very differently when their parameters are tuned. While t-SNE does not significantly change its output with different values of perplexity, UMAP and PaCMAP both show major change with different parametrization. The potential of TriMAP is regrettably not known from this experiment.
+
+The most potential comes with PaCMAP, as it has shifted the greatest amount from its default state. This however comes with a great increase of runtime. As for UMAP, while it has not shown as much tunability as PaCMAP, the fact that it runs much faster (with even GPU acceleration in certain implementations) can make it a more desirable method for common use. At this point, it seems like UMAP and PaCMAP are the most useful algorithms for \textit{de novo} molecule design.
 
 \section{Linear interpolation test}\label{sec:linear-interpolation-test}
 
