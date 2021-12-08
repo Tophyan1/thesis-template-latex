@@ -265,10 +265,52 @@ Finally, while I presented this test as a LERP, there are many other ways to sam
 
 If the mappings are not only smooth, but also relatively continuos, a curve of some kind should be drawn between the endpoints in two dimensions. With the similar molecules, it is also possible that the algorithms do not preserve the line topology, but instead transform the molecules into a cluster -- perhaps along with many other molecules. 
 
+The first algorithm, PCA transformed the interpolations into straight lines, as seen on figure (\ref{fig:pca:lerp}). This is not surprising as PCA performs a linear transformation that maps straight lines into straight lines. It can be clearly seen that the similar molecules were transformed into points much closer on the plane than the random ones.
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.5\columnwidth]{figures/PCA_LERP_coxib}
+	\includegraphics[width=0.5\columnwidth]{figures/PCA_LERP_random}
+	\caption{Result of linear interpolation test of PCA with similar molecules (left) and random molecules (right). The shape of the trace line is straight.}
+	\label{fig:pca:lerp}
+\end{figure}
+
+The results of t-SNE is significantly different than that of PCA. As can be seen on figure (\ref{fig:tsne:lerp}), t-SNE did not place the coxib molecules into the same cluster. Furthermore, the interpolated molecules are not placed in a curve between the two endpoints, rather placed into the clusters themselves. This results in a space where each point is surrounded by points that were close to it in the higher dimensional space. However, for targeted search, it is suboptimal, since many good candidate molecules are located in regions of the output space that is very far from the reference point.
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.5\columnwidth]{figures/t-SNE_LERP_coxib}
+	\includegraphics[width=0.5\columnwidth]{figures/t-SNE_LERP_random}
+	\caption{Result of linear interpolation test of t-SNE with similar molecules (left) and random molecules (right). In both cases, the chosen molecules were sorted into different clusters, and so were the interpolated points.}
+	\label{fig:tsne:lerp}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.5\columnwidth]{figures/UMAP_LERP_coxib}
+	\includegraphics[width=0.5\columnwidth]{figures/UMAP_LERP_random}
+	\caption{Result of linear interpolation test of t-SNE with similar molecules (left) and random molecules (right). In both cases, the chosen molecules were sorted into different clusters, and so were the interpolated points.}
+	\label{fig:umap:lerp}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.5\columnwidth]{figures/TriMAP_LERP_coxib}
+	\includegraphics[width=0.5\columnwidth]{figures/TriMAP_LERP_random}
+	\caption{Result of linear interpolation test of t-SNE with similar molecules (left) and random molecules (right). In both cases, the chosen molecules were sorted into different clusters, and so were the interpolated points.}
+	\label{fig:trimap:lerp}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.5\columnwidth]{figures/PaCMAP_LERP_coxib}
+	\includegraphics[width=0.5\columnwidth]{figures/PaCMAP_LERP_random}
+	\caption{Result of linear interpolation test of t-SNE with similar molecules (left) and random molecules (right). In both cases, the chosen molecules were sorted into different clusters, and so were the interpolated points.}
+	\label{fig:pacmap:lerp}
+\end{figure}
 
 
 \begin{itemize}
-	\item optimally a line is drawn  between ends
 	\item PCA made straight line, not surprising
 	\item t-SNE split points into two clusters
 	\item UMAP traced the path between them
