@@ -253,10 +253,21 @@ The most potential comes with PaCMAP, as it has shifted the greatest amount from
 
 \section{Linear interpolation test}\label{sec:linear-interpolation-test}
 
+So far we have seen that each algorithm transformed the higher dimensional latent space in a way such that the formed clusters in which molecules shared similar properties. This does imply a smoothness over chemical structure in the output space, however, it does not mean that different clusters contain dissimilar molecules. The property of the output space that ensures the aggregation of all similar molecules into one cluster, while not essential, is very useful in \textit{de novo} molecule design, particularly in targeted searching.
+
+In order to test the results of each algorithm for this property, I proposed a linear interpolation test, or LERP for short. This technique consists of selecting a fixed number of points that fit on a straight line between two selected observation in high dimension. These points are then added to the end of the dataset, and the new extended dataset is run through each algorithm. This results in a new embedding with those additional points that can be traced to see how the transition between data points are mapped to the output space.
+
+There are many considerations needed to make with this kind of test. Firstly, the number of additional points may seem unimportant, however, it is one of the most important parameter. Choosing too many points relative to the size of the original dataset, the relations between the newly added points may overpower the underlying structure of the original dataset, transforming the embedding vastly. Choosing too few points however renders the test less useful, as the finer detail of the mapping is not seen. In my case, I chose the number of points to be 100, which is sufficiently small for the size of the dataset (1.6 million molecules) as to not change the overall topology of the embedding, while also enabling the finely detailed view of the mapping.
+
+The second parameter to consider is the choice of endpoints. Different choices of points lead to different insights learned by performing the test. By deliberately choosing similar points, one can examine whether similar points in the input space are truly mapped near each other in the output space. With a random selection, a more general trend can be observed. It shows the transition that the algorithm constructs between data points. The same can be said about deliberately choosing distant points, but that choice offers no more insight than the random point variant. In my test, I opted to try both similar molecules (figure (\ref{fig:coxib})) and random ones (figure (\ref{fig:random_mol})).
+
+Finally, while I presented this test as a LERP, there are many other ways to sample points between two observations. On datasets with different topologies, different interpolation techniques work best. Particularly \textit{spherical linear interpolation} (SLERP) can be used as another useful method. In fact, during the training of the original autoencoder, SLERP was observed to give better results in novel molecule generation. \cite{bib:thesis} I have chosen to use LERP instead for conducting this test, as my use-case was not novel molecule sampling, and the mapping of a straight line is more interpretable as that of a circular arc.
+
+If the mappings are not only smooth, but also relatively continuos, a curve of some kind should be drawn between the endpoints in two dimensions. With the similar molecules, it is also possible that the algorithms do not preserve the line topology, but instead transform the molecules into a cluster -- perhaps along with many other molecules. 
+
+
+
 \begin{itemize}
-	\item important for targeted search
-	\item between similar molecules and random ones
-	\item only 100 points to not screw up embedding
 	\item optimally a line is drawn  between ends
 	\item PCA made straight line, not surprising
 	\item t-SNE split points into two clusters
