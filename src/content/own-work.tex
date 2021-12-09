@@ -301,27 +301,33 @@ The results of t-SNE is significantly different than that of PCA. As can be seen
 	\label{fig:tsne:lerp}
 \end{figure}
 
+\todo{UMAP}
+
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=0.5\columnwidth]{figures/UMAP_LERP_coxib}
 	\includegraphics[width=0.5\columnwidth]{figures/UMAP_LERP_random}
-	\caption{Result of linear interpolation test of t-SNE with similar molecules (left) and random molecules (right). In both cases, the chosen molecules were sorted into different clusters, and so were the interpolated points.}
+	\caption{UMAP}
 	\label{fig:umap:lerp}
 \end{figure}
 
-\begin{figure}[h]
-	\centering
-	\includegraphics[width=0.5\columnwidth]{figures/TriMAP_LERP_coxib}
-	\includegraphics[width=0.5\columnwidth]{figures/TriMAP_LERP_random}
-	\caption{Result of linear interpolation test of t-SNE with similar molecules (left) and random molecules (right). In both cases, the chosen molecules were sorted into different clusters, and so were the interpolated points.}
-	\label{fig:trimap:lerp}
-\end{figure}
+TriMAP resulted in the most unexpected embedding of all tested algorithms. The nature of the interpolated points were rather different than the others taken from embedding SMILES strings into a 64-dimensional latent space. This qualitative difference was picked up by TriMAP in both the tests. The algorithm placed the added points very far from all other points in two dimensions, as figure (\ref{fig:trimap:lerp}) shows. The rest of the input data was then embedded identically as without any added points. This shows how ``far-sighted'' TriMAP is. Even the difference between one hundred points on a line and 1.6 million points selected from a database embedded into a latent 64-dimensional space was enough to result in the total and perfect separation of the two classes.
 
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=0.5\columnwidth]{figures/PaCMAP_LERP_coxib}
-	\includegraphics[width=0.5\columnwidth]{figures/PaCMAP_LERP_random}
-	\caption{Result of linear interpolation test of t-SNE with similar molecules (left) and random molecules (right). In both cases, the chosen molecules were sorted into different clusters, and so were the interpolated points.}
+	\includegraphics[width=0.7\columnwidth]{figures/TriMAP_LERP_coxib}
+	\includegraphics[width=0.7\columnwidth]{figures/TriMAP_LERP_random}
+	\caption{Linear interpolation test results made by TriMAP. In both cases (LERP between similar molecules on the left, random on the right), the algorithm separated the interpolated points very far from the rest of the dataset.}
+	\label{fig:trimap:lerp}
+\end{figure}
+
+PaCMAP produced a result that could be described as expected. With an interpolation between two similar coxib molecules, the resulting embedding placed those extra points in one cluster, around the two endpoints. With random molecules however, the interpolation points were mapped to a line connecting two distinct clusters. These clusters were not too far apart, even though the two selected molecules possessed majorly different structures. This is possibly because the interpolated points connected the clusters, forcing PaCMAP to bring them closer to each other. This however did not result in the topology of the whole embedding to be different from normal runs. 
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.7\columnwidth]{figures/PaCMAP_LERP_coxib}
+	\includegraphics[width=0.7\columnwidth]{figures/PaCMAP_LERP_random}
+	\caption{PaCMAP embedding of the LERP tests. In the first case, the coxib-like points were all placed on the left of the space in one cluster. The randomly chosen LERP resulted on two clusters being connected on the right. No change to the topology of the whole embedding is observable.}
 	\label{fig:pacmap:lerp}
 \end{figure}
 
