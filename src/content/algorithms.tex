@@ -67,7 +67,7 @@ Another assumption made is that the dataset contains only linear dependencies. P
 
 \subsection{Algorithm}
 
-t-SNE consists of two main stages. The first one is constructing a probability distribution over pairs of high dimensional objects such that similar points are assigned higher probabilities while dissimilar objects are assigned lower probability. In the second stage, t-SNE constructs a similar probability distribution over the points in the low-dimensional map, then minimises the  Kullback–Leibler divergence~\cite{bib:kldiv} between the two distributions with respect to the positions of points in the map. The original version of t-SNE uses Euclidean distance as a metric for similarity, however, this can be changed in popular implementations where a different metric is more appropriate.
+t-SNE consists of two main stages. The first one is constructing a probability distribution over pairs of high dimensional objects such that similar points are assigned higher probabilities while dissimilar objects are assigned lower probability. In the second stage, t-SNE constructs a similar probability distribution over the points in the low-dimensional map, then minimizes the  Kullback–Leibler divergence~\cite{bib:kldiv} between the two distributions with respect to the positions of points in the map. The original version of t-SNE uses Euclidean distance as a metric for similarity, however, this can be changed in popular implementations where a different metric is more appropriate.
 
 In the first step of the algorithm, a probability distribution is constructed over the pairs of high dimensional objects. The exact formula for the probability assigned to the pair $\mathbf{x}_i$ and $\mathbf{x}_j$ is given by
 
@@ -120,7 +120,7 @@ The \textit{Kullback-Leibler divergence} (KL-divergence)~\cite{bib:kldiv} of the
 
 According to the original paper~\cite{bib:tsne}, the output matrix $Y$ is initialized using the multivariate Normal distribution  $\mathcal{N}(0,10^{-4}I)$, where $I$ denotes the $K$-dimensional identity matrix, and $K$ is the dimension of the output of t-SNE. In practice however, different initializations are utilised. One popular initialization is PCA, as it efficiently explores linear correlations between features of data.
 
-The final locations of the points $\mathrm{y}_i$ in the map are determined by minimising the Kullback-Leibler divergence of the probability distributions with respect to the points $\mathrm{y}_i$. This minimization is performed by gradient descent~\cite{bib:gd}. The result of this optimization is a map that reflects the similarities between the high-dimensional inputs.
+The final locations of the points $\mathrm{y}_i$ in the map are determined by minimizing the Kullback-Leibler divergence of the probability distributions with respect to the points $\mathrm{y}_i$. This minimization is performed by gradient descent~\cite{bib:gd}. The result of this optimization is a map that reflects the similarities between the high-dimensional inputs.
 
 \subsection{Advantages over PCA}
 
@@ -198,7 +198,7 @@ Note that this $G$ graph is analogous to t-SNE's $P$ probability distribution ma
 
 The second phase of UMAP is the construction and optimization of output matrix (graph) $Y$. The initialization is performed canonically by using spectral embedding. As with t-SNE, implementations of UMAP usually offer different initialization options.
 
-UMAP uses a force directed graph layout algorithm to optimise $Y$. This algorithm applies attractive forces along edges in $G$ and repulsive forces along $\bar{G}$, the complement of $G$. For every edge $(i, j)$ in $G$, the attractive force is defined as:
+UMAP uses a force directed graph layout algorithm to optimize $Y$. This algorithm applies attractive forces along edges in $G$ and repulsive forces along $\bar{G}$, the complement of $G$. For every edge $(i, j)$ in $G$, the attractive force is defined as:
 
 \begin{equation}
 	\alpha\cdot
