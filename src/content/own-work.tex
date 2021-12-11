@@ -87,25 +87,25 @@ The ideal descriptors are those that do not change very much as the structure of
 
 It should be noted that some of these descriptors do jump slightly from molecule to molecule, however, this change is not too great to cause problems in interpreting data.
 
-As can be seen on figure (\ref{fig:default_run}), the different algorithms yielded in substantially different embeddings. This is a direct result of the differences highlighted in table (\ref{tab:graph}). 
+As can be seen on figure (\ref{fig:default_run}), the different algorithms yielded in substantially different embeddings. This is a direct result of the differences highlighted in table (\ref{tab:graph}).
 
 PCA produces the smoothest transition. This might seem positive, but in reality, this is not ideal. Chemical descriptors, qed in particular are not monotonous over chemical structure. This means that similar while similar molecules have similar qed values, dissimilar molecules might have the exact same qed. For this reason, a complete gradient is undesirable. This stems from the fact that PCA performs a linear transformation, not allowing for the preservation of such structures.
 
-Another interesting thing is the difference in sklearn t-SNE and tsnecuda (second and third graph respectively). The sklearn implementation did not differentiate dissimilar points into distinct clusters. Investigating this phenomenon lead to the discovery that sklearn's implementation was bugged, only iterating for a mere 150 iteration, which was not enough for separation of different molecules, as can be seen on figure (\ref{fig:tsne:iter_sweep}). t-SNE has the most uniform clustering in terms of density of points among the graph-based algorithms. It should be noted that t-SNE did not use the default perplexity value, as I have found previously that a perplexity parameter of around 1000 produces the most desirable output. 
+Another interesting thing is the difference in sklearn t-SNE and tsnecuda (second and third graph respectively). The sklearn implementation did not differentiate dissimilar points into distinct clusters. Investigating this phenomenon lead to the discovery that sklearn's implementation was bugged, only iterating for a mere 150 iteration, which was not enough for separation of different molecules, as can be seen on figure (\ref{fig:tsne:iter_sweep}). t-SNE has the most uniform clustering in terms of density of points among the graph-based algorithms. It should be noted that t-SNE did not use the default perplexity value, as I have found previously that a perplexity parameter of around 1000 produces the most desirable output.
 
-UMAP clusters the molecules in one big cluster (although not as extremely as PaCMAP), with a few little clusters on the side. This is partly due to the low default min\_dist parameter, making ultra-tightly packed clusters. The space is very much smooth over qed value. 
+UMAP clusters the molecules in one big cluster (although not as extremely as PaCMAP), with a few little clusters on the side. This is partly due to the low default min\_dist parameter, making ultra-tightly packed clusters. The space is very much smooth over qed value.
 
 TriMAP creates objects resembling magnetic field lines. This is very interesting from a structural view. It should be noted however, that it seems like the individual clusters overlap with each other in a way that no other algorithm resembles. For this reason, targeted search would be very difficult on a space created by TriMAP. This particular problem as we will see does not get better with tuning parameters, making TriMAP fundamentally unusable for this use-case.
 
 PaCMAP -- similarly to UMAP -- produces one compact cluster in the middle, with some additional clusters nearby. This behaviour is not ideal for targeted search, since quite different molecules are placed near each other. PaCMAP does offer very much control over its sightedness however, and with different parameters, this can change.
 
-In determining whether the space is smooth over the chemical structure of molecules instead of some descriptors, I investigated the embeddings by colouring the plots according to descriptors that have definitely not been used by the property predictor during the training of the VAE. As can be seen on figure (\ref{fig:TPSA}), colouring by topological polar surface area, It can be stated that the algorithms produce a smooth gradient between high-valued areas and lower-valued areas. This indicates that the space is indeed smooth over the chemical structure. Multiple other descriptors have been tested and they all yielded similar results.
+In determining whether the space is smooth over the chemical structure of molecules instead of some descriptors, I investigated the embeddings by colouring the plots according to descriptors that have definitely not been used by the property predictor during the training of the VAE. As can be seen on figure (\ref{fig:TPSA}), colouring by topological polar surface area, It can be stated that the algorithms produce a smooth gradient between high-valued areas and lower-valued areas. This indicates that the space is indeed smooth over the chemical structure. Multiple other descriptors have been tested, and they all yielded similar results.
 
 Overall, with default parameters, it initially seems like t-SNE produces the most desirable embedding. TriMAP resulted in the least useful output space out of the graph-based algorithms. This will however change with other parameters, as the values are tuned to represent the dataset faithfully.
 
 \section{Optimizing the parameters}\label{sec:optimizing-the-parameters}
 
-As discussed previously, an advantage of parametrizable algorithms is the fact that the user is able to influence the preservation of local or global structure according to their use-case. For optimal results, each algorithm was run multiple times with different parametrization. The choice of parameters to sweep was based on how much effect it had theoretically. 
+As discussed previously, an advantage of parametrizable algorithms is the fact that the user is able to influence the preservation of local or global structure according to their use-case. For optimal results, each algorithm was run multiple times with different parametrization. The choice of parameters to sweep was based on how much effect it had theoretically.
 
 \subsection{t-SNE}
 
@@ -142,9 +142,9 @@ It seems like this parameter does not have a large effect on the result. This ca
 \subsection{UMAP}
 
 
-UMAP has two particularly interesting parameters when it comes to the result of the embedding. These are min\_dist and n\_neighbours. The former dictates the minimum distance between points that are in the same cluster, while the latter is the number of nearest neighbours searched for in the initial stage of the algorithm. 
+UMAP has two particularly interesting parameters when it comes to the result of the embedding. These are min\_dist and n\_neighbours. The former dictates the minimum distance between points that are in the same cluster, while the latter is the number of nearest neighbours searched for in the initial stage of the algorithm.
 
-The first parameter, min\_dist has a very drastic effect on the embedding. With low values of min\_dist, clusters there is no penality for placing intra-cluster points very closely, forming  highly compact clusters. This also means that different clusters are separated more clearly. With higher values, even points in the same cluster are placed further apart, making a more uniform distribution of points, that have less cluster separation. This effect is shown on figure (\ref{fig:umap:min_dist}). 
+The first parameter, min\_dist has a very drastic effect on the embedding. With low values of min\_dist, clusters there is no penality for placing intra-cluster points very closely, forming  highly compact clusters. This also means that different clusters are separated more clearly. With higher values, even points in the same cluster are placed further apart, making a more uniform distribution of points, that have less cluster separation. This effect is shown on figure (\ref{fig:umap:min_dist}).
 
 \begin{figure}[!h]
 	\centering
@@ -158,11 +158,11 @@ The first parameter, min\_dist has a very drastic effect on the embedding. With 
 	\label{fig:umap:min_dist}
 \end{figure}
 
-While the ultra-tight clusters allow more separation of inter-cluster molecules, for the purpose of targeted search, they are undesirable. This is due to the fact that in tightly-packed clusters, sampling must be done very closely to the original point, meaning even small changes in the location of a sampled point can result in very different chemicals. This however can be solved by generating the low min\_dist embedding and scaling every point too. The major drawback of such a procedure is that targeted searching in the scaled space results in scaled points that have to be rescaled for further use. 
+While the ultra-tight clusters allow more separation of inter-cluster molecules, for the purpose of targeted search, they are undesirable. This is due to the fact that in tightly-packed clusters, sampling must be done very closely to the original point, meaning even small changes in the location of a sampled point can result in very different chemicals. This however can be solved by generating the low min\_dist embedding and scaling every point too. The major drawback of such a procedure is that targeted searching in the scaled space results in scaled points that have to be rescaled for further use.
 
-While the exact optimum of this parameter is not objectively measurable, according to figure (\ref{fig:umap:min_dist}) a value of around 0.75 seems to be the sweet spot for balance between tightly packed clusters and uniformly placing the molecules. 
+While the exact optimum of this parameter is not objectively measurable, according to figure (\ref{fig:umap:min_dist}) a value of around 0.75 seems to be the sweet spot for balance between tightly packed clusters and uniformly placing the molecules.
 
-The number of nearest neighbours is the parameter of UMAP that shifts the focus from local to global structure. With a larger number of nearest neighbours, a more global structure is approximated in the initial stage of UMAP. This in turn results in the lower dimensional graph being optimized for more global structure preservation. 
+The number of nearest neighbours is the parameter of UMAP that shifts the focus from local to global structure. With a larger number of nearest neighbours, a more global structure is approximated in the initial stage of UMAP. This in turn results in the lower dimensional graph being optimized for more global structure preservation.
 
 \begin{figure}[!h]
 	\centering
@@ -191,9 +191,9 @@ We have seen in section (\ref{sec:result-of-first-runs}) that TriMAP produced ve
 	\label{fig:trimap:n_inliers}
 \end{figure}
 
-After running TriMAP with a few values of \texttt{n\_inliers}, the results showed very little change in the topology of the embedding (seen in figure (\ref{fig:trimap:n_inliers})). The first thought I had seeing this result was that TriMAP is unable to focus on local structure of the dataset. This was supported by most articles and papers I have read on the subject. 
+After running TriMAP with a few values of \texttt{n\_inliers}, the results showed very little change in the topology of the embedding (seen in figure (\ref{fig:trimap:n_inliers})). The first thought I had seeing this result was that TriMAP is unable to focus on local structure of the dataset. This was supported by most articles and papers I have read on the subject.
 
-This meant that TriMAP is just unfit for the use-case of targeted searching in the latent space of drug-like molecules. 
+This meant that TriMAP is just unfit for the use-case of targeted searching in the latent space of drug-like molecules.
 
 Later on, I realized that the parameter \texttt{n\_inliers} serves a similar role as PaCMAP's near-pair count, influencing mostly global structure preservation. It can be seen on figure (\ref{fig:trimap:n_inliers}) that increasing the parameter significantly does not change the result as much, specifically because TriMAP already focuses on global structure.
 
@@ -201,11 +201,11 @@ Unfortunately, by the time I realized this, I did not have enough time to sweep 
 
 \subsection{PaCMAP}
 
-PaCMAP has four main hyperparameters that change the topology of the resulting embedding. These are the the number of near pairs ($n_{NB}$), the ratio between mid-near pairs and near pairs (MN\_ratio), the ratio between further pairs and near pairs (FP\_ratio) and the initialization of the lower dimensional graph. The original paper~\cite{bib:pacmap} describes the effect of changing each one briefly. 
+PaCMAP has four main hyperparameters that change the topology of the resulting embedding. These are the number of near pairs ($n_{NB}$), the ratio between mid-near pairs and near pairs (MN\_ratio), the ratio between further pairs and near pairs (FP\_ratio) and the initialization of the lower dimensional graph. The original paper~\cite{bib:pacmap} describes the effect of changing each one briefly.
 
 The paper showed that PaCMAP is rather robust to the choice of initialization, more so than all other algorithms. For this reason, I decided not to investigate this parameter, as it would have lead to unfruitful optimizing.
 
-The number of near pairs have a significant effect on the final embedding. In general, it can be said that for larger values of $n_{NB}$, PaCMAP preserves more global structure. This is due to the fact that increasing the nearest neighbours increases the attractive forces during optimization, resulting in a less overall detail in the embedding. 
+The number of near pairs have a significant effect on the final embedding. In general, it can be said that for larger values of $n_{NB}$, PaCMAP preserves more global structure. This is due to the fact that increasing the nearest neighbours increases the attractive forces during optimization, resulting in a less overall detail in the embedding.
 
 MN\_ratio has very little effect on the overall embedding. Only by having extreme values of it (both extremely small and large), does it affect the result. It is observed that extreme values of MN\_ratio cause problems with both local and global structure. The omission of mid-near points cause the worst result, leading to no structural preservation. In the paper, it is stated that this ratio should be fixed to the default 0.5, for computational and quality reasons.
 
@@ -232,7 +232,7 @@ It is important to note that this effect is not without drawbacks. As the FP\_ra
 		\begin{tabular}{|c|r|}
 			\hline
 			FP\_ratio & Runtime (s)\\
-			\hline 
+			\hline
 			0.5 & 1:52:43.78 \\
 			\hline
 			7 & 7:14:07.76 \\
@@ -257,7 +257,7 @@ So far we have seen that each algorithm transformed the higher dimensional laten
 
 In order to test the results of each algorithm for this property, I proposed a linear interpolation test, or LERP for short. This technique consists of selecting a fixed number of points that fit on a straight line between two selected observation in high dimension. These points are then added to the end of the dataset, and the new extended dataset is run through each algorithm. This results in a new embedding with those additional points that can be traced to see how the transition between data points are mapped to the output space.
 
-There are many considerations needed to make with this kind of test. Firstly, the number of additional points may seem unimportant, however, it is one of the most important parameter. Choosing too many points relative to the size of the original dataset, the relations between the newly added points may overpower the underlying structure of the original dataset, transforming the embedding vastly. Choosing too few points however renders the test less useful, as the finer detail of the mapping is not seen. In my case, I chose the number of points to be 100, which is sufficiently small for the size of the dataset (1.6 million molecules) as to not change the overall topology of the embedding, while also enabling the finely detailed view of the mapping.
+There are many considerations needed to make with this kind of test. Firstly, the number of additional points may seem unimportant, however, it is one of the most important parameters. Choosing too many points relative to the size of the original dataset, the relations between the newly added points may overpower the underlying structure of the original dataset, transforming the embedding vastly. Choosing too few points however renders the test less useful, as the finer detail of the mapping is not seen. In my case, I chose the number of points to be 100, which is sufficiently small for the size of the dataset (1.6 million molecules) as to not change the overall topology of the embedding, while also enabling the finely detailed view of the mapping.
 
 \begin{figure}[!h]
 	\centering
@@ -279,7 +279,7 @@ The second parameter to consider is the choice of endpoints. Different choices o
 
 Finally, while I presented this test as a LERP, there are many other ways to sample points between two observations. On datasets with different topologies, different interpolation techniques work best. Particularly \textit{spherical linear interpolation} (SLERP) can be used as another useful method. In fact, during the training of the original autoencoder, SLERP was observed to give better results in novel molecule generation. \cite{bib:thesis} I have chosen to use LERP instead for conducting this test, as my use-case was not novel molecule sampling, and the mapping of a straight line is more interpretable as that of a circular arc.
 
-If the mappings are not only smooth, but also relatively continuos, a curve of some kind should be drawn between the endpoints in two dimensions. With the similar molecules, it is also possible that the algorithms do not preserve the line topology, but instead transform the molecules into a cluster -- perhaps along with many other molecules. 
+If the mappings are not only smooth, but also relatively continuos, a curve of some kind should be drawn between the endpoints in two dimensions. With the similar molecules, it is also possible that the algorithms do not preserve the line topology, but instead transform the molecules into a cluster -- perhaps along with many other molecules.
 
 \begin{figure}[h]
 	\centering
@@ -299,7 +299,7 @@ The first algorithm, PCA transformed the interpolations into straight lines, as 
 	\label{fig:tsne:lerp}
 \end{figure}
 
-The results of t-SNE is significantly different than that of PCA. As can be seen on figure (\ref{fig:tsne:lerp}), t-SNE did not place the coxib molecules into the same cluster. Furthermore, the interpolated molecules are not placed in a curve between the two randomly chosen endpoints, rather placed into the clusters themselves. This results in a space where each point is surrounded by points that were close to it in the higher dimensional space. However, for targeted search, it is suboptimal, since many good candidate molecules are located in regions of the output space that is very far from the reference point. In the case of similar endpoints, while some path-tracing structure is present, the algorithm ultimately places the in two distinct clusters.
+The results of t-SNE are significantly different from that of PCA. As can be seen on figure (\ref{fig:tsne:lerp}), t-SNE did not place the coxib molecules into the same cluster. Furthermore, the interpolated molecules are not placed in a curve between the two randomly chosen endpoints, rather placed into the clusters themselves. This results in a space where each point is surrounded by points that were close to it in the higher dimensional space. However, for targeted search, it is suboptimal, since many good candidate molecules are located in regions of the output space that is very far from the reference point. In the case of similar endpoints, while some path-tracing structure is present, the algorithm ultimately places the in two distinct clusters.
 
 \begin{figure}[h]
 	\centering
@@ -319,7 +319,7 @@ UMAP behaves very similarly when the interpolated points are between similar mol
 	\label{fig:trimap:lerp}
 \end{figure}
 
-TriMAP resulted in the most unexpected embedding of all tested algorithms. The nature of the interpolated points were rather different than the others taken from embedding SMILES strings into a 64-dimensional latent space. This qualitative difference was picked up by TriMAP in both the tests. The algorithm placed the added points very far from all other points in two dimensions, as figure (\ref{fig:trimap:lerp}) shows. The rest of the input data was then embedded almost identically as without any added points. This shows how ``far-sighted'' TriMAP is. Even the difference between one hundred points on a line and 1.6 million points selected from a database embedded into a latent 64-dimensional space was enough to result in the total and perfect separation of the two classes.
+TriMAP resulted in the most unexpected embedding of all tested algorithms. The nature of the interpolated points were rather different from the others taken from embedding SMILES strings into a 64-dimensional latent space. This qualitative difference was picked up by TriMAP in both the tests. The algorithm placed the added points very far from all other points in two dimensions, as figure (\ref{fig:trimap:lerp}) shows. The rest of the input data was then embedded almost identically as without any added points. This shows how ``far-sighted'' TriMAP is. Even the difference between one hundred points on a line and 1.6 million points selected from a database embedded into a latent 64-dimensional space was enough to result in the total and perfect separation of the two classes.
 
 \begin{figure}[h]
 	\centering
@@ -329,7 +329,7 @@ TriMAP resulted in the most unexpected embedding of all tested algorithms. The n
 	\label{fig:pacmap:lerp}
 \end{figure}
 
-PaCMAP produced a result that could be described as expected. With an interpolation between two similar coxib molecules, the resulting embedding placed those extra points in one cluster, around the two endpoints. With random molecules however, the interpolation points were mapped to a line connecting two distinct clusters. These clusters were not too far apart, even though the two selected molecules possessed majorly different structures. This is possibly because the interpolated points connected the clusters, forcing PaCMAP to bring them closer to each other. This however did not result in the topology of the whole embedding to be different from normal runs. 
+PaCMAP produced a result that could be described as expected. With an interpolation between two similar coxib molecules, the resulting embedding placed those extra points in one cluster, around the two endpoints. With random molecules however, the interpolation points were mapped to a line connecting two distinct clusters. These clusters were not too far apart, even though the two selected molecules possessed majorly different structures. This is possibly because the interpolated points connected the clusters, forcing PaCMAP to bring them closer to each other. This however did not result in the topology of the whole embedding to be different from normal runs.
 
 
 
