@@ -8,7 +8,16 @@
 %----------------------------------------------------------------------------
 \chapter*{Kivonat}\addcontentsline{toc}{chapter}{Kivonat}
 
-Jelen dokumentum egy diplomaterv sablon, amely formai keretet ad a BME Villamosmérnöki és Informatikai Karán végző hallgatók által elkészítendő szakdolgozatnak és diplomatervnek. A sablon használata opcionális. Ez a sablon \LaTeX~alapú, a \emph{TeXLive} \TeX-implementációval és a PDF-\LaTeX~fordítóval működőképes.
+A modern gyógyszerkutatás egyik legfőbb motivációja az gyógyszerként viselkedő vegyületek előállítása. Az új gyógyszermolekulák felfedezése lehetővé teszi az eddig gyógyíthatatlannak vélt betegségek kezelését. A \textit{de novo} molekulagenerálás egy olyan folyamat, mely során egy adott, molekulákat tartalmazó adathalmaz alapján generálunk molekulákat, amelyek az adatbázisban lévőekhez hasonlóak, de azoktól eltérőek. Ez a módszer az utóbbi évtizedekben egyre népszerűbbé vált.
+
+Az új gyógyszerszerű molekulák előállítása nagyon költséges és időigényes. A folyamat felgyorsítására az elmúlt három évtizedben a gépi tanulást és a mély neurális hálózatokat alkalmazták. Különösen népszerű módszer a variációs autoenkóder használata a célzott keresésre alkalmas gyógyszerszerű molekulák látens terének létrehozására.
+
+Egy ilyen látens tér azonban csak akkor használható, ha az a molekulák kémiai szerkezetére nézve sima. Ennek eldöntése azonban nem triviális, mivel a molekulák kémiai szerkezete nem könnyen számszerűsíthető, és az ilyen látens tereknek általában magas a dimenzionalitása, ami miatt szükséges dimenzió redukciós és vizualizáló algorithmusok használata.
+
+Az elmúlt évtizedekben számos dimenzió redukciós és vizualizációs algoritmust fejlesztettek ki. A dolgozatomban öt gyakran használt algoritmust - PCA, t-SNE, UMAP, TriMAP és PaCMAP - vizsgálok meg, hogy mennyire használható eredményt adnak egy adott adathalmazra.
+
+Mindegyik algoritmust abból a szempontból vizsgálom, hogy képesek-e egy 64 dimenziós látens teret úgy átalakítani, hogy az így kapott kétdimenziós tér a molekulák kémiai szerkezetére nézve sima legyen. Optimalizálom az egyes algoritmusok hiperparamétereit, ezzel vizsgálva, hogy hogyan alakítják át a kapott beágyazást, és elvégzek egy LERP-tesztet a teljes tér leképzésének vizsgálatára.
+
 
 
 \vfill
@@ -20,7 +29,15 @@ Jelen dokumentum egy diplomaterv sablon, amely formai keretet ad a BME Villamosm
 %----------------------------------------------------------------------------
 \chapter*{Abstract}\addcontentsline{toc}{chapter}{Abstract}
 
-This document is a \LaTeX-based skeleton for BSc/MSc~theses of students at the Electrical Engineering and Informatics Faculty, Budapest University of Technology and Economics. The usage of this skeleton is optional. It has been tested with the \emph{TeXLive} \TeX~implementation, and it requires the PDF-\LaTeX~compiler.
+In modern drug research, one of the most important tasks is finding novel drug-like molecules. The discovery of new drug molecules makes it possible to treat diseases previously thought incurable. \textit{De novo} molecule design is the process of generating novel chemicals based on a dataset of drug-like molecules. This method has gained popularity in recent decades.
+
+The cost of generating novel drug-like molecules is very costly and time-consuming. To speed the process up, machine learning and deep neural networks have been used in the last three decades. A particularly popular method is using a variational autoencoder to generate a latent space of drug-like molecules suitable for targeted searching.
+
+Quantifying the quality of such a latent space is vital for effective usage. This task is not trivial however, as the chemical structure of molecules cannot be easily quantized and such latent spaces tend to be high-dimensional, leading to the need for dimension reducing visualization algorithms to be applied.
+
+Many dimension reduction and visualization algorithms have been developed in recent decades. In this paper, I evaluate five commonly used algorithms -- PCA, t-SNE, UMAP, TriMAP and PaCMAP -- to see how well they perform on a given dataset.
+
+I examine each algorithm on their ability to transform a 64-dimensional latent space such that the resulting two-dimensional space is smooth over chemical structure. I optimize  the hyperparameters of each algorithm to see how they transform the resulting embedding, and perform a LERP test to see how they map the entire space into two dimensions.
 
 
 \vfill
