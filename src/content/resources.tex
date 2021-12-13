@@ -2,27 +2,28 @@
 \chapter{Resources}\label{ch:resources}
 %----------------------------------------------------------------------------
 
-In order to effectively explore the differences between the previously described algorithms, I needed a sufficiently large dataset and computational resources. In this chapter, I will describe the data on which I used these algorithms and the hardware resources I utilised to run said the clusterings.
+In order to effectively explore the differences between the previously described algorithms, I needed a sufficiently large dataset and computational resources. In this chapter, I will describe the data on which I used these algorithms and the hardware resources I utilised to run the clusterings.
 
 \section{Used data}\label{sec:used-data}
 
-The data I used was the latent representation of more than 1.6 million unique SMILES strings~\cite{bib:smiles}. These strings were collected from two databases and served as an input to a variational autoencoder~\cite{bib:vae} in order to embed them into a 64-dimensional latent representation, that preserved some chemical structure from the kernel space to the image~\cite{bib:thesis}.
-The preservation of chemical structure was ensured with training this model with a property predictor~\cite{bib:prop_pred}. If this preservation of chemical structure exists, we should find that after running the previously described algorithms, the resulting two-dimensional space also has a smoothness over chemical structure.
+The data I used was the latent representation of more than 1.6 million unique SMILES strings~\cite{bib:smiles}. These strings were collected from two databases and served as an input to a variational autoencoder~\cite{bib:vae} in order to embed them into a 64-dimensional latent representation that preserved some chemical structure from the kernel space to the image~\cite{bib:thesis}.
 
-The dataset had more features than the SMILES and latent representation of the molecules. Certain chemical descriptors, such as \textit{quantitative estimate of drug-likeness} (qed~\cite{bib:qed}), \textit{synthetic accessibility score} (SaS~\cite{bib:sas}) among many others. Overall, seven such chemical descriptors were included in the database along with one feature to indicate the database of origin of the string. The last feature was an indicator of the whether the data point was in the test set or not during the training of the model. These features -- except for the last two -- were all utilised by the property predictor of the autoencoder, so the latent space should be relatively smooth over these values.
+The preservation of chemical structure was ensured by training this model with a property predictor~\cite{bib:prop_pred}. If this preservation of chemical structure exists, we should find that after running the previously described algorithms, the resulting two-dimensional space also has a smoothness over chemical structure.
+
+The dataset had more features than the SMILES and latent representation of the molecules. Certain chemical descriptors, such as \textit{quantitative estimate of drug-likeness} (qed~\cite{bib:qed}), \textit{synthetic accessibility score} (SaS~\cite{bib:sas}) among many others. Overall, seven such chemical descriptors were included in the database along with one feature to indicate the database's origin. The last feature was an indicator of whether the data point was in the test set or not during the training of the model. These features -- except for the last two -- were all utilised by the property predictor of the autoencoder, so the latent space should be relatively smooth over these values.
 
 It should be noted that the distribution of the latent space of the variational autoencoder is Gaussian in nature, therefore no standardization is needed for algorithms such as PCA for proper embedding.
 
 \section{Hardware resources}\label{sec:hardware-resources}
 
-In terms of hardware, the requirements were quite beyond a standard personal computer's specification. Fortunately, I was granted access to a department server called Phoenix. This computer has 12 processing cores and 64 GB of RAM. In terms of GPU resources, it has an nVidia TITAN Xp graphics card, which I was able to use for running a t-SNE implementation to drastically reduce the runtime of the algorithm.
+In terms of hardware, the requirements were quite beyond the specifications of a standard personal computer. Fortunately, I was granted access to a department server called Phoenix. This computer has 12 processing cores and 64 GB of RAM. In terms of GPU resources, it has an nVidia TITAN Xp graphics card, which I was able to use for running a t-SNE implementation to drastically reduce the runtime of the algorithm.
 
-At the end of the semester, I was granted access to another department computer, called Nyx, which has 48 processing units and 250 GB of RAM and also has an nVidia TITAN Xp. I did not use this server in the end, since by the time I got access to it, the development phase of the project was nearly completed, however, I plan to utilise it in the future for the continuation of the project.
+At the end of the semester, I was granted access to another department computer, called Nyx, which has 48 processing units and 250 GB of RAM and also has an nVidia TITAN Xp. I did not use this server in the end, since by the time I got access to it, the development phase of the project was nearly completed. However, I plan to utilise it in the future for the continuation of the project.
 
 \section{Software resources}\label{sec:software-resources}
 
-The first decision I had to make was the development environment. The most reasonable approach was developing in Python. This is due to the ease of development and the abundance of scientific packages, including at least one implementation of all five of the studied algorithms. 
+The first decision I had to make was about the development environment. The most reasonable approach was to develop in Python. This is due to the ease of development and the abundance of scientific packages, including at least one implementation of all five of the studied algorithms.
 
-For the reading, processing and writing of data, used the \texttt{numpy} and \texttt{pandas} libraries. For visualizing embedded latent spaces, \texttt{matplotlib} was used. The chemical computations were performed by \texttt{RDKit}\cite{bib:rdkit}.
+For the reading, processing and writing of data, I used the \texttt{numpy} and \texttt{pandas} libraries. For visualizing embedded latent spaces, \texttt{matplotlib} was used. The chemical computations were performed by \texttt{RDKit}\cite{bib:rdkit}.
 
 For the PCA algorithm, I used the \texttt{scikit-learn==0.24.1} implementation. Two t-SNE implementation was used, \texttt{openTSNE==0.5.2} is a versatile CPU-based package, and \texttt{tsnecuda==2.1.1} is one with GPU utilization capabilities. The UMAP implementation I used was \texttt{umap-learn==0.5.1}. The TriMAP implementation was \texttt{trimap==1.0.15}. Finally, for PaCMAP, I used the package \texttt{pacmap==0.3}.
